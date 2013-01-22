@@ -23,8 +23,7 @@
 use strict;
 require File::Temp;
 use esmith::ConfigDB;
-use esmith::BackupDB;
-use esmith::BackupHistoryDB;
+use esmith::Backup;
 
 $ENV{PATH} = "/sbin/e-smith:/sbin:/bin:/usr/bin";
 
@@ -32,134 +31,37 @@ my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 my $program;
 my $backup_conf = $conf->get('backup-config');
 my $status = $backup_conf->prop('status') || 'disabled';
-my $conf_dir = './backup-config.d/';
+
+my $backup = new esmith::Backup('config');
 
 # If config backup is disabled, just exit
 unless ($status eq 'enabled')
 {
-    print "Backup is disabled\n";
     exit 0;
 }
 
+$backup->logger("START","Starting backup");
+
+if ( -e esmith::Backup::BACKUP_CONFIG_DESTINATION ) {
+    unlink(esmith::Backup::BACKUP_CONFIG_DESTINATION);
+}
 
 # Read include and exclude from config directory
-# These entries are mandatory and can't be overwritten
-my @include_files = includes($conf_dir);
+my @include_files = $backup->includes(esmith::Backup::BACKUP_CONFIG_CONF_DIR);
 #print "include="; print join(' ',@include_files); print "\n";
-my @exclude_files = excludes($conf_dir);
+if (!@include_files) {
+    $backup->bad_exit("Nothing to backup",1);
+}
+my @exclude_files = $backup->excludes(esmith::Backup::BACKUP_CONFIG_CONF_DIR);
 #print "exclude="; print join(' ',@exclude_files); print "\n";
 
-
-
-if (changed(\@include_files, \@exclude_files)) {
-   backup_config(\@include_files, \@exclude_files);
+if ($backup->changed(\@include_files, \@exclude_files)) {
+   $backup->backup_config(\@include_files, \@exclude_files);
+   $backup->logger("SUCCESS","Backup done - 0");
+} else {
+   $backup->logger("SUCCESS","No backup needed - 0");
 }
+
+
 exit 0;
 
-my $backups = esmith::BackupHistoryDB->open
-    || die("Could not open backup history db\n");
-my $now = time();
-my $backup_rec = $backups->new_record($now, { type => 'backup_record' });
-$backup_rec->set_prop('StartEpochTime', "$now");
-$backup_rec->set_prop('BackupType', "config");
-
-
-$now = time();
-$backup_rec->set_prop('EndEpochTime', "$now");
-$backup_rec->set_prop('Result', "$status");
-exit 0;
-
-
-sub uniq {
-    return keys %{{ map { $_ => 1 } @_ }};
-}
-
-sub bad_exit
-{
-    my ($backup_rec, $phase, $status) = @_;
-    my $now = time();
-
-    warn("Backup terminated: $phase failed - status: $status\n");
-    $backup_rec->set_prop('EndEpochTime', "$now");
-    $backup_rec->set_prop('Result', "$phase:$status");
-    return $status / 256;
-}
-
-sub load_files_from_dir
-{
-    my $dir = shift;
-    my $extension = shift;
-    my @ret;
-    my @files = <$dir*.$extension>;
-    foreach my $file (@files) {
-       push(@ret,load_file_list($file));
-    }
-    return @ret;
-}    my $dir = shift;
-
-
-sub includes
-{
-    my $dir = shift;
-    return load_files_from_dir($dir,'include');
-}
-
-sub excludes
-{
-    my $dir = shift;
-    return load_files_from_dir($dir,'exclude');
-}
-
-
-
-sub changed
-{
-    my $include_files = shift;
-    my $exclude_files = shift;
-    my $opts = '';
-    my $paths = join(" ",@{$include_files});
-    $opts = join(" -path ", @{$exclude_files});
-   
-    if ($opts ne '') { # add exclusions
-       $opts = " \\( -path $opts \\) -prune -o ";
-    }
-
-    # count how many files have been modified in the last 24 hours
-    my $cmd = `/bin/find $paths $opts -daystart -mtime -2 -type f -print | wc -l`;
-    chomp $cmd;
-
-    # return true if there at least one modified files
-    return ($cmd gt 0);
-}
-
-
-sub load_file_list
-{
-    my $file = shift;
-    my @paths;
-    open (FILE, $file) or die 'Unable to open the list file: $file';
-
-    while (<FILE>) {
-        chop($_);
-        next if (/.*\*.*/);
-        push(@paths, $_);
-    }
-    close(FILE);
-
-   return @paths;
-}
-
-sub backup_config
-{
-   my $include_files = shift;
-   my $exclude_files = shift;
-   my $fh = File::Temp->new( UNLINK => 0);
-   print $fh join("\n",@{$exclude_files});
-   my $cmd = "/bin/tar -cvpzf /tmp/backup-config.tgz -X ".$fh->filename." ".join(" ",@{$include_files});
-   if (system($cmd) != 0) {
-     die "Can't create tar file";
-   }
-
-   
-   
-}

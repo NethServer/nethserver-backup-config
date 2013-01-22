@@ -16,6 +16,11 @@ use Unix::GroupFile;
 use vars qw($VERSION @ISA @EXPORT_OK);
 
 use constant ESMITH_RESTORE_CACHE => '/var/cache/e-smith/restore';
+use constant BACKUP_CONFIG_LOG_FILE => "/var/log/backup-config.log";
+use constant BACKUP_CONFIG_CONF_DIR => "/etc/backup-config.d/";
+use constant BACKUP_CONFIG_DESTINATION => "/tmp/backup-config.tar.gz";
+use constant BACKUP_DATA_LOG_FILE => "/var/log/backup-data.log";
+
 
 @ISA = qw(Exporter);
 
@@ -35,16 +40,6 @@ information
 
 =cut
 
-=begin testing
-
-use esmith::TestUtils qw(scratch_copy);
-use_ok("esmith::Backup");
-
-$backup = new esmith::Backup;
-isa_ok($backup, 'esmith::Backup');
-
-=end testing
-
 =head2 new
 
 This is the class constructor.
@@ -53,40 +48,21 @@ This is the class constructor.
 
 sub new
 {
-    my $class = ref($_[0]) || $_[0];
-    my $self = {};
+    my $class = shift;;
+    my $self = {
+        _type => shift,
+    };
     $self = bless $self, $class;
+    if ($self->{_type} eq 'config') {
+        $self->{_log_file} = BACKUP_CONFIG_LOG_FILE;
+    } elsif ($self->{_type} eq 'data')  {
+        $self->{_log_file} = BACKUP_DATA_LOG_FILE;
+    } else {
+       $self->{_log_file} = '/dev/null';
+    }
     return $self;
 }
 
-=head2 restore_list
-
-Returns an (ordered) array of files/directories to recover from the
-backup. The pathnames are relative to root.
-
-=cut
-
-sub restore_list
-{
-    my ($self) = @_;
-
-    return (
-        'home/e-smith',
-        'etc/e-smith/templates-custom',
-        'etc/e-smith/templates-user-custom',
-        'etc/ssh',
-        'root',
-        'etc/sudoers',
-        'etc/passwd',
-        'etc/shadow',
-        'etc/group',
-        'etc/gshadow',
-        'etc/samba/secrets.tdb',
-        'etc/samba/smbpasswd',
-	'etc/cups/printers.conf',
-	'etc/cups/classes.conf',
-    );
-}
 
 =head2 merge_passwd
 
@@ -107,24 +83,6 @@ machine accounts
 
 =item * 
 Log any other missing users or UID/GID mismatches
-
-=begin testing
-
-my $installed = '10e-smith-backup/passwd-installed';
-my $restored = scratch_copy('10e-smith-backup/passwd-restored');
-
-is($backup->merge_passwd($installed, $restored), 1, 'merge_passwd worked');
-
-use Digest::MD5;
-open(FILE, '10e-smith-backup/passwd-merged') || die $!;
-my $srcmd5 = Digest::MD5->new->addfile(*FILE)->hexdigest;
-open(FILE, $restored) || die $1;
-my $destmd5 = Digest::MD5->new->addfile(*FILE)->hexdigest;
-close FILE;
-
-is( $srcmd5, $destmd5,  'merge_passwd output looks good' );
-
-=end testing
 
 =cut
 
@@ -221,25 +179,6 @@ Log any other missing groups or GID mismatches
 
 =item *
 Adjust www, admin, shared groups
-
-=begin testing
-
-my $installed = '10e-smith-backup/group-installed';
-my $restored = scratch_copy('10e-smith-backup/group-restored');
-
-$ENV{ESMITH_BACKUP_PASSWD_FILE} = '10e-smith-backup/passwd-merged';
-is($backup->merge_group($installed, $restored), 1, 'merge_group worked');
-
-use Digest::MD5;
-open(FILE, '10e-smith-backup/group-merged') || die $!;
-my $srcmd5 = Digest::MD5->new->addfile(*FILE)->hexdigest;
-open(FILE, $restored) || die $1;
-my $destmd5 = Digest::MD5->new->addfile(*FILE)->hexdigest;
-close FILE;
-
-is( $srcmd5, $destmd5,  'merge_group output looks good' );
-
-=end testing
 
 =cut
 
@@ -416,6 +355,106 @@ sub _homedir_ok
 
     return $dir =~ m:^/(home/e-smith|noexistingpath): ;
 }
+
+
+
+
+sub logger
+{
+    use POSIX qw/strftime/;
+    my ($self, $tag, $message) = @_;
+    open(FILE, ">>".$self->{_log_file});
+    print FILE strftime('%D %T',localtime)." - $tag - $message\n";
+    close(FILE);
+}
+
+sub uniq {
+    return keys %{{ map { $_ => 1 } @_ }};
+}
+
+sub bad_exit
+{
+    my ($self, $msg, $status) = @_;
+
+    $msg.= " - $status" unless !defined($status);
+    $self->logger('ERROR',$msg);
+
+    exit(1);
+}
+
+sub load_file_list
+{
+    my ($self, $file) = @_;
+    my @paths;
+    open (FILE, $file) or die 'Unable to open the list file: $file';
+
+    while (<FILE>) {
+        chop($_);
+        next if (/.*\*.*/);
+        push(@paths, $_);
+    }
+    close(FILE);
+
+   return @paths;
+}
+
+
+sub load_files_from_dir
+{
+    my ($self, $dir, $extension ) = @_;
+    my @ret;
+    my @files = <$dir*.$extension>;
+    foreach my $file (@files) {
+       push(@ret,$self->load_file_list($file));
+    }
+    return @ret;
+}
+
+
+sub includes
+{
+    my ($self, $dir) = @_;
+    return uniq($self->load_files_from_dir($dir,'include'));
+}
+
+sub excludes
+{
+    my ($self, $dir) = @_;
+    return uniq($self->load_files_from_dir($dir,'exclude'));
+}
+
+sub changed
+{
+    my ($self, $include_files, $exclude_files) = @_;
+    my $opts = '';
+    my $paths = join(" ",@{$include_files});
+    $opts = join(" -path ", @{$exclude_files});
+
+    if ($opts ne '') { # add exclusions
+       $opts = " \\( -path $opts \\) -prune -o ";
+    }
+
+    # count how many files have been modified in the last 24 hours
+    my $cmd = `/bin/find $paths $opts -daystart -mtime -2 -type f -print | wc -l`;
+    chomp $cmd;
+
+    # return true if there at least one modified files
+    return ($cmd gt 0);
+}
+
+
+sub backup_config
+{
+   my ($self, $include_files, $exclude_files) = @_;
+   my $fh = File::Temp->new( UNLINK => 0);
+   print $fh join("\n",@{$exclude_files});
+   my $cmd = "/bin/tar -cpzf /tmp/backup-config.tgz -X ".$fh->filename." ".join(" ",@{$include_files})." 2>/dev/null";
+   my $ret = system($cmd);
+   if ($ret != 0) {
+     $self->bad_exit("ERROR","Can't create tar file",$ret>>8);
+   }
+}
+
 
 =head1 AUTHOR
 
