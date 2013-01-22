@@ -28,9 +28,7 @@ use esmith::Build::CreateLinks  qw(:all);
 
 my $event = "nethserver-backup-config-update";
 
-event_actions($event,
-              'initialize-default-databases' => '00',
-              'nethserver-backup-config-conf' => '02');
+event_actions($event, 'initialize-default-databases' => '00');
 
 
 #--------------------------------------------------
