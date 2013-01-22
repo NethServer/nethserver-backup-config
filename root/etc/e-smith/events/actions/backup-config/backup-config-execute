@@ -27,18 +27,7 @@ use esmith::Backup;
 
 $ENV{PATH} = "/sbin/e-smith:/sbin:/bin:/usr/bin";
 
-my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
-my $program;
-my $backup_conf = $conf->get('backup-config');
-my $status = $backup_conf->prop('status') || 'disabled';
-
 my $backup = new esmith::Backup('config');
-
-# If config backup is disabled, just exit
-unless ($status eq 'enabled')
-{
-    exit 0;
-}
 
 $backup->logger("START","Starting backup");
 
