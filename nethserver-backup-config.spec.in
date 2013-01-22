@@ -7,7 +7,7 @@ Group: System
 Source: %{name}-%{version}.tar.gz
 BuildArch: noarch
 BuildRequires: nethserver-devtools
-Requires: tar
+Requires: tar, perl-Unix-ConfigFile
 Requires: nethserver-base
 AutoReq: no
 
