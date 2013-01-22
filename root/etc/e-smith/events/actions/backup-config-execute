@@ -23,26 +23,24 @@
 use strict;
 require File::Temp;
 use esmith::ConfigDB;
-use esmith::Backup;
+use NethServer::BackupConfig;
 
 $ENV{PATH} = "/sbin/e-smith:/sbin:/bin:/usr/bin";
 
-my $backup = new esmith::Backup('config');
+my $backup = new NethServer::BackupConfig();
 
 $backup->logger("START","Starting backup");
 
-if ( -e esmith::Backup::BACKUP_CONFIG_DESTINATION ) {
-    unlink(esmith::Backup::BACKUP_CONFIG_DESTINATION);
+if ( -e NethServer::Backup::BACKUP_CONFIG_DESTINATION ) {
+    unlink(NethSever::Backup::BACKUP_CONFIG_DESTINATION);
 }
 
 # Read include and exclude from config directory
-my @include_files = $backup->includes(esmith::Backup::BACKUP_CONFIG_CONF_DIR);
-#print "include="; print join(' ',@include_files); print "\n";
+my @include_files = $backup->includes(NethServer::BackupConfig::BACKUP_CONFIG_CONF_DIR);
 if (!@include_files) {
     $backup->bad_exit("Nothing to backup",1);
 }
-my @exclude_files = $backup->excludes(esmith::Backup::BACKUP_CONFIG_CONF_DIR);
-#print "exclude="; print join(' ',@exclude_files); print "\n";
+my @exclude_files = $backup->excludes(NethServer::Backup::BACKUP_CONFIG_CONF_DIR);
 
 if ($backup->changed(\@include_files, \@exclude_files)) {
    $backup->backup_config(\@include_files, \@exclude_files);

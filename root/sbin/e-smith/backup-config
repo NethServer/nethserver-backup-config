@@ -1,7 +1,50 @@
-#!/bin/bash
+#! /usr/bin/perl -w
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
 
-if  [ `/sbin/e-smith/config getprop backup-config status` == 'enabled' ]; then
-    /sbin/e-smith/signal-event pre-backup-config
-    /sbin/e-smith/signal-event backup-config
-    /sbin/e-smith/signal-event post-backup-config
-fi
+use strict;
+use esmith::ConfigDB;
+use NethServer::BackupConfig;
+
+my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
+my $backup = $conf->get('backup-config');
+my $status = $backup->prop('status') || 'disabled';
+
+exit 0 unless ($status eq 'enabled');
+
+$backup = new NethServer::BackupConfig();
+
+
+if ($status = system(qw(signal-event pre-backup-config)))
+{
+    $backup->bad_exit("Event pre-backup-config failed", $status);
+}
+
+if ($status = system("/etc/e-smith/events/actions/backup-config/backup-config-execute"))
+{
+    $backup->bad_exit("Action backup-config-execute failed", $status);
+}
+
+if ($status = system(qw(signal-event post-backup-config)))
+{
+    $backup->bad_exit("Event post-backup-config failed", $status);
+}
+
+exit 0;
