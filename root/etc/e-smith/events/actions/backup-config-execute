@@ -31,17 +31,19 @@ my $backup = new NethServer::BackupConfig();
 
 $backup->logger("START","Starting backup");
 
-if ( -e NethServer::Backup::BACKUP_CONFIG_DESTINATION ) {
-    unlink(NethSever::Backup::BACKUP_CONFIG_DESTINATION);
+# remove destination file if already exists
+if ( -e NethServer::BackupConfig::DESTINATION ) {
+    unlink(NethServer::BackupConfig::DESTINATION);
 }
 
 # Read include and exclude from config directory
-my @include_files = $backup->includes(NethServer::BackupConfig::BACKUP_CONFIG_CONF_DIR);
+my @include_files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
 if (!@include_files) {
     $backup->bad_exit("Nothing to backup",1);
 }
-my @exclude_files = $backup->excludes(NethServer::Backup::BACKUP_CONFIG_CONF_DIR);
+my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
 
+# if any file is changed, execute the backup
 if ($backup->changed(\@include_files, \@exclude_files)) {
    $backup->backup_config(\@include_files, \@exclude_files);
    $backup->logger("SUCCESS","Backup done - 0");

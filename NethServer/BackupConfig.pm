@@ -25,9 +25,9 @@ use warnings;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
-use constant BACKUP_CONFIG_LOG_FILE => "/var/log/backup-config.log";
-use constant BACKUP_CONFIG_CONF_DIR => "/etc/backup-config.d/";
-use constant BACKUP_CONFIG_DESTINATION => "/tmp/backup-config.tar.gz";
+use constant LOG_FILE => "/var/log/backup-config.log";
+use constant CONF_DIR => "/etc/backup-config.d/";
+use constant DESTINATION => "/tmp/backup-config.tar.gz";
 
 
 @ISA = qw(Exporter);
@@ -57,8 +57,9 @@ This is the class constructor.
 
 sub new
 {
-    my $class = shift;;
+    my $class = shift;
     my $self = {};
+    $self = bless $self, $class;
     return $self;
 }
 
@@ -76,7 +77,7 @@ sub logger
 {
     use POSIX qw/strftime/;
     my ($self, $tag, $message) = @_;
-    open(FILE, ">>".$self->{_log_file});
+    open(FILE, ">>".LOG_FILE);
     print FILE strftime('%D %T',localtime)." - $tag - $message\n";
     close(FILE);
 }
@@ -201,7 +202,7 @@ sub backup_config
    my ($self, $include_files, $exclude_files) = @_;
    my $fh = File::Temp->new( UNLINK => 0);
    print $fh join("\n",@{$exclude_files});
-   my $cmd = "/bin/tar -cpzf ".BACKUP_CONFIG_DESTINATION." -X ".$fh->filename." ".join(" ",@{$include_files})." 2>/dev/null";
+   my $cmd = "/bin/tar -cpzf ".DESTINATION." -X ".$fh->filename." ".join(" ",@{$include_files})." 2>/dev/null";
    my $ret = system($cmd);
    if ($ret != 0) {
      $self->bad_exit("ERROR","Can't create tar file",$ret);

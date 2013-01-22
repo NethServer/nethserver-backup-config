@@ -37,7 +37,7 @@ if ($status = system(qw(signal-event pre-backup-config)))
     $backup->bad_exit("Event pre-backup-config failed", $status);
 }
 
-if ($status = system("/etc/e-smith/events/actions/backup-config/backup-config-execute"))
+if ($status = system("/etc/e-smith/events/actions/backup-config-execute"))
 {
     $backup->bad_exit("Action backup-config-execute failed", $status);
 }
