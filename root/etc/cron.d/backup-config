@@ -1,0 +1,3 @@
+# Execute configuration backup if enabled
+10 2 * * *   root /sbin/e-smith/backup-config
+

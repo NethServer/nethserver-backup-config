@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if  [ `/sbin/e-smith/config getprop backup-config status` == 'enabled' ]; then
+    /sbin/e-smith/signal-event pre-backup-config
+    /sbin/e-smith/signal-event backup-config
+    /sbin/e-smith/signal-event post-backup-config
+fi
