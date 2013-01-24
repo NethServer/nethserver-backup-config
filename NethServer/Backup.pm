@@ -101,7 +101,7 @@ sub bad_exit
     $msg.= " - ".($status>>8) unless !defined($status);
     $self->logger('ERROR',$msg);
 
-    exit(1) unless  !defined($status);
+    exit(1) unless defined($status);
     exit($status>>8);
 }
 
@@ -201,6 +201,28 @@ sub changed
 
     # return true if there at least one modified files
     return ($cmd gt 0);
+}
+
+
+=head2 is_mounted
+
+Takes a directory or a regexp.
+Return true if the direcotry is mounted, false otherwise.
+
+=cut
+
+sub is_mounted
+{
+    my ($self, $dir) = @_;
+    my $err = 0;
+    open FD, '/proc/mounts';
+    while (<FD>)
+    {
+        next unless /\s$dir\s/;
+        $err++;
+    }
+    close FD;
+    return ($err != 0);
 }
 
 
