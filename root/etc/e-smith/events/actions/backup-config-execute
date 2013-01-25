@@ -25,8 +25,6 @@ require File::Temp;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
 
-$ENV{PATH} = "/sbin/e-smith:/sbin:/bin:/usr/bin";
-
 my $backup = new NethServer::BackupConfig();
 
 $backup->logger("START","Starting backup");
