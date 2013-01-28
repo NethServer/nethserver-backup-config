@@ -25,7 +25,7 @@ use NethServer::BackupConfig;
 my $status;
 
 my $backup = new NethServer::BackupConfig();
-$backup->{_log_file} = "/var/log/restore-config.log";
+$backup->set_log_file("/var/log/restore-config.log");
 
 $backup->logger("START","Restore config started");
 
