@@ -27,19 +27,25 @@ my $status;
 my $backup = new NethServer::BackupConfig();
 $backup->{_log_file} = "/var/log/restore-config.log";
 
+$backup->logger("START","Restore config started");
+
 if ($status = system(qw(signal-event pre-restore-config)))
 {
     $backup->bad_exit("Event pre-restore-config failed", $status);
 }
+$backup->logger("STEP","pre-restore-config done");
 
 if ($status = system("/etc/e-smith/events/actions/restore-config-execute"))
 {
     $backup->bad_exit("Action restore-config-execute failed", $status);
 }
+$backup->logger("STEP","restore-config-execute done");
 
 if ($status = system(qw(signal-event post-restore-config)))
 {
     $backup->bad_exit("Event post-restore-config failed", $status);
 }
+
+$backup->logger("SUCCESS","Restore config done");
 
 exit 0;

@@ -31,20 +31,25 @@ exit 0 unless ($status eq 'enabled');
 
 $backup = new NethServer::BackupConfig();
 
+$backup->logger("START","Backup config started");
 
 if ($status = system(qw(signal-event pre-backup-config)))
 {
     $backup->bad_exit("Event pre-backup-config failed", $status);
 }
+$backup->logger("STEP","pre-backup-config done");
 
 if ($status = system("/etc/e-smith/events/actions/backup-config-execute"))
 {
     $backup->bad_exit("Action backup-config-execute failed", $status);
 }
+$backup->logger("STEP","backup-config-execute done");
 
 if ($status = system(qw(signal-event post-backup-config)))
 {
     $backup->bad_exit("Event post-backup-config failed", $status);
 }
+
+$backup->logger("SUCCESS","Backup config done");
 
 exit 0;

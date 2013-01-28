@@ -27,8 +27,6 @@ use NethServer::BackupConfig;
 
 my $backup = new NethServer::BackupConfig();
 
-$backup->logger("START","Starting backup");
-
 # remove destination file if already exists
 if ( -e NethServer::BackupConfig::DESTINATION ) {
     unlink(NethServer::BackupConfig::DESTINATION);
@@ -44,9 +42,6 @@ my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
 # if any file is changed, execute the backup
 if ($backup->changed(\@include_files, \@exclude_files)) {
    $backup->backup_config(\@include_files, \@exclude_files);
-   $backup->logger("SUCCESS","Backup done - 0");
-} else {
-   $backup->logger("SUCCESS","No backup needed - 0");
 }
 
 

@@ -28,11 +28,8 @@ $backup->{_log_file} = "/var/log/restore-config.log";
 
 my $ret = system("tar -C / -xf ".NethServer::BackupConfig::DESTINATION);
 
-if ($ret == 0) {
-   $backup->logger("SUCCESS","Restore done");
-} else {
+if ($ret != 0) {
    $backup->bad_exit("Error during restore",$ret);
-   exit 1;
 }
 
 
