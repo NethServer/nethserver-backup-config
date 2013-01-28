@@ -24,6 +24,7 @@ use esmith::ConfigDB;
 use NethServer::BackupConfig;
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
+my $status;
 
 my $backup = new NethServer::BackupConfig();
 $backup->{_log_file} = "/var/log/restore-config.log";
