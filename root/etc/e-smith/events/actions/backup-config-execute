@@ -21,16 +21,10 @@
 #
 
 use strict;
-require File::Temp;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
 
 my $backup = new NethServer::BackupConfig();
-
-# remove destination file if already exists
-if ( -e NethServer::BackupConfig::DESTINATION ) {
-    unlink(NethServer::BackupConfig::DESTINATION);
-}
 
 # Read include and exclude from config directory
 my @include_files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
@@ -41,7 +35,15 @@ my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
 
 # if any file is changed, execute the backup
 if ($backup->changed(\@include_files, \@exclude_files)) {
-   $backup->backup_config(\@include_files, \@exclude_files);
+
+    # remove destination file if already exists
+    if ( -e NethServer::BackupConfig::DESTINATION ) {
+       unlink(NethServer::BackupConfig::DESTINATION);
+   }
+
+   $backup->backup_config(\@include_files, \@exclude_files); 
+   chmod(0640,NethServer::BackupConfig::DESTINATION);
+   system("/bin/chgrp admin ".NethServer::BackupConfig::DESTINATION);
 }
 
 
