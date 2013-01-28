@@ -28,7 +28,7 @@ use vars qw($VERSION @ISA @EXPORT_OK);
 
 use constant LOG_FILE => "/var/log/backup-config.log";
 use constant CONF_DIR => "/etc/backup-config.d/";
-use constant DESTINATION => "/tmp/backup-config.tar.gz";
+use constant DESTINATION => "/var/lib/nethserver/backup/backup-config.tar.gz";
 
 
 @ISA = qw(NethServer::Backup);
