@@ -28,6 +28,12 @@ event_queue add %{name}-update
 %build
 perl createlinks
 
+# create events
+mkdir -p root/etc/e-smith/events/post-backup-config
+mkdir -p root/etc/e-smith/events/pre-backup-config
+mkdir -p root/etc/e-smith/events/pre-restore-config
+mkdir -p root/etc/e-smith/events/post-restore-config
+
 # relocate perl modules under default perl vendorlib directory:
 mkdir -p root%{perl_vendorlib}
 mv -v NethServer root%{perl_vendorlib}
