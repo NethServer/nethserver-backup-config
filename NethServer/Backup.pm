@@ -226,6 +226,30 @@ sub is_mounted
 }
 
 
+=head2 get_log_file
+
+Returns the current log file name.
+
+=cut
+
+sub get_log_file {
+  my $self = shift;
+  return $self->{_log_file};
+}
+
+=head2 set_log_file
+
+Takes a file name.
+Set the current log file name.
+
+=cut
+
+sub set_log_file {
+  my $self = shift;
+  my $file = shift;
+  $self->{_log_file} = $file;
+}
+
 =head1 AUTHOR
 
 Nethsis srl <support@nethesis.it>
