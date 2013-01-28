@@ -22,6 +22,7 @@ package NethServer::BackupConfig;
 
 use strict;
 use warnings;
+use File::Temp;
 use NethServer::Backup;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
