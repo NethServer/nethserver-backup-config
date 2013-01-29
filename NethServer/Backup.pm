@@ -71,7 +71,7 @@ sub logger
     my ($self, $tag, $message) = @_;
     return unless defined($self->{_log_file});
     open(FILE, ">>".$self->{_log_file});
-    print FILE strftime('%D %T',localtime)." - $tag - $message\n";
+    print FILE strftime('%F %T',localtime)." - $tag - $message\n";
     close(FILE);
 }
 
