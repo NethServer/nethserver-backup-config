@@ -22,34 +22,54 @@
 use strict;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
+use POSIX qw/strftime/;
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 my $backup = $conf->get('backup-config');
 my $status = $backup->prop('status') || 'disabled';
+# valid values for notify are: always, error, never
+my $notify = $backup->prop('notify') || 'error';
+my $notify_to = $backup->prop('notifyTo') || 'admin@localhost';
 
 exit 0 unless ($status eq 'enabled');
 
-$backup = new NethServer::BackupConfig();
+$backup = new NethServer::BackupConfig($notify,$notify_to);
 
+$backup->notify("===== Report for configuration backup =====");
+
+my $start = time;
 $backup->logger("START","Backup config started");
+$backup->notify("Backup started at %s", strftime('%F %T',localtime));
 
-if ($status = system(qw(signal-event pre-backup-config)))
+if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-config)))
 {
+    $backup->notify("Pre backup scripts status: ERROR");
     $backup->bad_exit("Event pre-backup-config failed", $status);
 }
 $backup->logger("STEP","pre-backup-config done");
+$backup->notify("Pre backup scripts status: SUCCESS");
 
 if ($status = system("/etc/e-smith/events/actions/backup-config-execute"))
 {
+    $backup->notify("Backup script status: ERROR");
     $backup->bad_exit("Action backup-config-execute failed", $status);
 }
 $backup->logger("STEP","backup-config-execute done");
+$backup->notify("Backup script status: SUCCESS");
 
-if ($status = system(qw(signal-event post-backup-config)))
+if ($status = system(qw(/sbin/e-smith/signal-event post-backup-config)))
 {
+    $backup->notify("Post backup scripts status: ERROR");
     $backup->bad_exit("Event post-backup-config failed", $status);
 }
+$backup->notify("Post backup scripts status: SUCCESS");
 
 $backup->logger("SUCCESS","Backup config done");
+$backup->notify("Backup status: SUCCESS");
+$backup->notify("Backup ended at %s", strftime('%F %T',localtime));
+my $duration = time - $start;
+$backup->notify("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
+
+$backup->send_notification();
 
 exit 0;
