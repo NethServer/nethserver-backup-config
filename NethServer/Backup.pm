@@ -141,6 +141,7 @@ sub bad_exit
     if ( ($self->{_notify} eq "error") or ($self->{_notify} eq "always") ) {
         $self->_send_notification();
     }
+    unlink $self->{_notification_file};
 
     exit(1) unless defined($status);
     exit($status>>8);
