@@ -22,6 +22,9 @@ package NethServer::Backup;
 
 use strict;
 use warnings;
+use Locale::gettext;
+use esmith::I18N;
+use Sys::Hostname;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
@@ -50,8 +53,17 @@ This is the class constructor.
 sub new
 {
     my $class = shift;
-    my $self = {};
+    my $notify = shift || 'error';
+    my $notify_to = shift || 'admin@localhost';
+    my $self = {
+        _notify => $notify,
+        _notify_to => $notify_to,
+    };
     $self = bless $self, $class;
+
+    my $i18n = new esmith::I18N;
+    $i18n->setLocale("nethserver-backup");
+
     return $self;
 }
 
@@ -74,6 +86,31 @@ sub logger
     print FILE strftime('%F %T',localtime)." - $tag - $message\n";
     close(FILE);
 }
+
+=head2 logger
+
+Take a message.
+Write a localized notification line to  _notification_file file.
+
+=cut
+
+sub notify
+{
+    use POSIX qw/strftime/;
+    my ($self, $message) = @_;
+    shift @_;
+    shift @_;
+    return unless ($self->{_notify} ne 'never');
+    return unless defined($self->{_notification_file});
+
+    my $i18n = new esmith::I18N;
+    $i18n->setLocale("nethserver-backup");
+    
+    open(FILE, ">>".$self->{_notification_file});
+    print FILE sprintf(gettext($message)."\n",@_);
+    close(FILE);
+}
+
 
 =head2 uniq
 
@@ -101,10 +138,47 @@ sub bad_exit
     $msg.= " - ".($status>>8) unless !defined($status);
     $self->logger('ERROR',$msg);
 
+    if ( ($self->{_notify} eq "error") or ($self->{_notify} eq "always") ) {
+        $self->_send_notification();
+    }
+
     exit(1) unless defined($status);
     exit($status>>8);
 }
 
+
+sub send_notification
+{
+    my ($self) = @_;
+    if ($self->{_notify} eq "always")  {
+        $self->_send_notification();
+    }
+}
+
+sub _send_notification
+{
+    my ($self) = @_;
+    my $content;
+    open(my $fh, '<', $self->{_notification_file}) or $self->logger("NOTIFY","Can't read notification file");
+    {
+        local $/;
+        $content = <$fh>;
+    }
+    close($fh);
+   
+    my $i18n = new esmith::I18N;
+    $i18n->setLocale("nethserver-backup");
+ 
+    my $host = hostname;
+    open(MAIL, "|/usr/sbin/sendmail -t");
+    print MAIL "To: root\@localhost\n";
+    print MAIL "From: Backup notification <admin@".$host.">\n";
+    print MAIL "Subject: ".gettext('Backup-config report')."\n\n";
+    print MAIL $content;
+    close(MAIL);
+
+    unlink $self->{_notification_file};
+}
 
 =head2 load_file_list
 
@@ -249,6 +323,31 @@ sub set_log_file {
   my $file = shift;
   $self->{_log_file} = $file;
 }
+
+=head2 get_notification_file
+
+Returns the current notification file name.
+
+=cut
+
+sub get_notification_file {
+  my $self = shift;
+  return $self->{_notification_file};
+}
+
+=head2 set_notification_file
+
+Takes a file name.
+Set the current notification file name.
+
+=cut
+
+sub set_notification_file {
+  my $self = shift;
+  my $file = shift;
+  $self->{_notification_file} = $file;
+}
+
 
 =head1 AUTHOR
 

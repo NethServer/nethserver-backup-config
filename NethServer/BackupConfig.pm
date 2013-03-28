@@ -28,6 +28,7 @@ use NethServer::Backup;
 use vars qw($VERSION @ISA @EXPORT_OK);
 
 use constant LOG_FILE => "/var/log/backup-config.log";
+use constant NOTIFICATION_FILE => "/tmp/backup-config-notification";
 use constant CONF_DIR => "/etc/backup-config.d/";
 use constant DESTINATION => "/var/lib/nethserver/backup/backup-config.tar.gz";
 
@@ -59,8 +60,13 @@ This is the class constructor which sets the log file.
 sub new
 {
     my $class = shift;
+    my $notify = shift || 'error';
+    my $notify_to = shift || 'root@localhost';
     my $self = {
-        _log_file => LOG_FILE
+        _log_file => LOG_FILE,
+        _notify => $notify,
+        _notify_to => $notify_to,
+        _notification_file => NOTIFICATION_FILE,
     };
     $self = bless $self, $class;
     return $self;
