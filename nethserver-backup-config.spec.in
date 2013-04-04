@@ -38,8 +38,8 @@ mkdir -p root/etc/e-smith/events/post-restore-config
 mkdir -p root%{perl_vendorlib}
 mv -v NethServer root%{perl_vendorlib}
 
-/usr/bin/msgfmt root/usr/share/locale/en_US/LC_MESSAGES/nethserver-backup.po -o root/usr/share/locale/en_US/LC_MESSAGES/nethserver-backup.po
-
+/usr/bin/msgfmt root/usr/share/locale/en_US/LC_MESSAGES/nethserver-backup.po -o root/usr/share/locale/en_US/LC_MESSAGES/nethserver-backup.mo
+rm -f root/usr/share/locale/en_US/LC_MESSAGES/nethserver-backup.po
 
 %install
 rm -rf $RPM_BUILD_ROOT
