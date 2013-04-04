@@ -35,7 +35,8 @@ exit 0 unless ($status eq 'enabled');
 
 $backup = new NethServer::BackupConfig($notify,$notify_to);
 
-$backup->notify("===== Report for configuration backup =====");
+$backup->cleanup_notification();
+$backup->notify("===== Report for configuration backup =====\n");
 
 my $start = time;
 $backup->logger("START","Backup config started");

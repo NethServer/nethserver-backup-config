@@ -29,7 +29,8 @@ my $backup = new NethServer::BackupConfig();
 # Read include and exclude from config directory
 my @include_files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
 if (!@include_files) {
-    $backup->bad_exit("Nothing to backup",1);
+    $backup->logger('ERROR',"Nothing to backup - 1");
+    exit 1;
 }
 my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
 

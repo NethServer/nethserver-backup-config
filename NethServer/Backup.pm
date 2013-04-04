@@ -135,7 +135,7 @@ sub bad_exit
 {
     my ($self, $msg, $status) = @_;
 
-    $msg.= " - ".($status>>8) unless !defined($status);
+    $msg.= " - ".$status unless !defined($status);
     $self->logger('ERROR',$msg);
 
     if ( ($self->{_notify} eq "error") or ($self->{_notify} eq "always") ) {
@@ -147,6 +147,24 @@ sub bad_exit
     exit($status>>8);
 }
 
+
+=head2 cleanup_notification
+
+Remove existing notification file.
+
+=cut
+
+sub cleanup_notification
+{
+    my ($self) = @_;
+    unlink $self->{_notification_file};
+}
+
+=head2 send_notification
+
+Send notification if notify type is 'always'.
+
+=cut
 
 sub send_notification
 {
@@ -166,15 +184,19 @@ sub _send_notification
         $content = <$fh>;
     }
     close($fh);
+
+    $content .= "\n\n\n".sprintf(gettext('Extract from log file %s'),$self->{_log_file}).":\n\n";
+    $content .= $self->_extract_log();
+    $content .= "\n";
    
     my $i18n = new esmith::I18N;
     $i18n->setLocale("nethserver-backup");
- 
+
     my $host = hostname;
     open(MAIL, "|/usr/sbin/sendmail -t");
-    print MAIL "To: root\@localhost\n";
-    print MAIL "From: Backup notification <admin@".$host.">\n";
-    print MAIL "Subject: ".gettext('Backup-config report')."\n\n";
+    print MAIL "To: ".$self->{_notify_to}."\n";
+    print MAIL "From: Backup <admin@".$host.">\n";
+    print MAIL "Subject: ".gettext('Backup report')."\n\n";
     print MAIL $content;
     close(MAIL);
 
@@ -307,9 +329,10 @@ Returns the current log file name.
 
 =cut
 
-sub get_log_file {
-  my $self = shift;
-  return $self->{_log_file};
+sub get_log_file 
+{
+    my $self = shift;
+    return $self->{_log_file};
 }
 
 =head2 set_log_file
@@ -319,10 +342,11 @@ Set the current log file name.
 
 =cut
 
-sub set_log_file {
-  my $self = shift;
-  my $file = shift;
-  $self->{_log_file} = $file;
+sub set_log_file 
+{
+    my $self = shift;
+    my $file = shift;
+    $self->{_log_file} = $file;
 }
 
 =head2 get_notification_file
@@ -331,9 +355,10 @@ Returns the current notification file name.
 
 =cut
 
-sub get_notification_file {
-  my $self = shift;
-  return $self->{_notification_file};
+sub get_notification_file 
+{
+    my $self = shift;
+    return $self->{_notification_file};
 }
 
 =head2 set_notification_file
@@ -343,13 +368,51 @@ Set the current notification file name.
 
 =cut
 
-sub set_notification_file {
-  my $self = shift;
-  my $file = shift;
-  $self->{_notification_file} = $file;
+sub set_notification_file 
+{
+    my $self = shift;
+    my $file = shift;
+    $self->{_notification_file} = $file;
+}
+
+=head2 count_log_lines
+
+Count lines of log file
+
+=cut
+
+sub _count_log_lines 
+{
+    my $self = shift;
+    my $lines = 0;
+    open (FILE, $self->{_log_file}) or return 0;
+    $lines++ while (<FILE>);
+    close FILE;
+    return $lines;
 }
 
 
+=head2 extract_log
+
+Return log file content starting from line _log_lines
+
+=cut
+
+sub _extract_log
+{
+    my $self = shift;
+    my $ret = "";
+    my $lines = 0;
+    open (FILE, $self->{_log_file}) or return "";
+    while (<FILE>) {
+        $lines++;
+        if($lines > $self->{_log_lines}) {
+            $ret.=$_;
+        }
+    }
+    close FILE;
+    return $ret;
+}
 =head1 AUTHOR
 
 Nethsis srl <support@nethesis.it>

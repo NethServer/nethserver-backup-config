@@ -28,6 +28,8 @@ msgstr ""
 msgid "Time elapsed: %s hours, %s minutes, %s seconds"
 msgstr ""
 
-msgid "Backup-config report"
+msgid "Backup report"
 msgstr ""
 
+msgid "Extract from log file %s"
+msgstr ""

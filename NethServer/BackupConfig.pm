@@ -69,6 +69,7 @@ sub new
         _notification_file => NOTIFICATION_FILE,
     };
     $self = bless $self, $class;
+    $self->{_log_lines} = $self->_count_log_lines();
     return $self;
 }
 
