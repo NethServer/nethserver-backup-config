@@ -1,0 +1,33 @@
+msgid "Backup started at %s"
+msgstr "Backup iniziato alle %s"
+
+msgid "Pre backup scripts status: ERROR"
+msgstr "Stato script pre-backup: ERRORE"
+
+msgid "Pre backup scripts status: SUCCESS"
+msgstr "Stato script pre-backup: SUCCESSO"
+
+msgid "Backup script status: ERROR"
+msgstr "Stato script backup: ERRORE"
+
+msgid "Backup script status: SUCCESS"
+msgstr "Stato script backup: SUCCESSO"
+
+msgid "Post backup scripts status: ERROR"
+msgstr "Stato script post-backup: ERRORE"
+
+msgid "Post backup scripts status: SUCCESS"
+msgstr "Stato script post-backup: SUCCESSO"
+
+msgid "Backup status: SUCCESS"
+msgstr "Stato backup: SUCCESSO"
+
+msgid "Backup ended at %s"
+msgstr "Backup concluso alle %s"
+
+msgid "Time elapsed: %s hours, %s minutes, %s seconds"
+msgstr "Tempo trscorso: %s ore, %s minuti, %s secondi"
+
+msgid "Backup report"
+msgstr "Report backup"
+
