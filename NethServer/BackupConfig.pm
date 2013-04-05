@@ -90,7 +90,7 @@ sub backup_config
    my $cmd = "/bin/tar -cpzf ".DESTINATION." -X ".$fh->filename." ".join(" ",@{$include_files})." 2>/dev/null";
    my $ret = system($cmd);
    if ($ret != 0) {
-     $self->bad_exit("ERROR","Can't create tar file",$ret);
+     $self->bad_exit("Can't create tar file ($cmd)",$ret);
    }
    return 0;
 }
