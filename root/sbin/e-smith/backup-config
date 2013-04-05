@@ -45,7 +45,7 @@ $backup->notify("Backup started at %s", strftime('%F %T',localtime));
 if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-config)))
 {
     $backup->notify("Pre backup scripts status: ERROR");
-    $backup->bad_exit("Event pre-backup-config failed", $status);
+    $backup->bad_exit("Event pre-backup-config failed", $status>>8);
 }
 $backup->logger("STEP","pre-backup-config done");
 $backup->notify("Pre backup scripts status: SUCCESS");
@@ -53,7 +53,7 @@ $backup->notify("Pre backup scripts status: SUCCESS");
 if ($status = system("/etc/e-smith/events/actions/backup-config-execute"))
 {
     $backup->notify("Backup script status: ERROR");
-    $backup->bad_exit("Action backup-config-execute failed", $status);
+    $backup->bad_exit("Action backup-config-execute failed", $status>>8);
 }
 $backup->logger("STEP","backup-config-execute done");
 $backup->notify("Backup script status: SUCCESS");
@@ -61,7 +61,7 @@ $backup->notify("Backup script status: SUCCESS");
 if ($status = system(qw(/sbin/e-smith/signal-event post-backup-config)))
 {
     $backup->notify("Post backup scripts status: ERROR");
-    $backup->bad_exit("Event post-backup-config failed", $status);
+    $backup->bad_exit("Event post-backup-config failed", $status>>8);
 }
 $backup->notify("Post backup scripts status: SUCCESS");
 
