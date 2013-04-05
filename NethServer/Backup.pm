@@ -144,7 +144,7 @@ sub bad_exit
     unlink $self->{_notification_file};
 
     exit(1) unless defined($status);
-    exit($status>>8);
+    exit($status);
 }
 
 
@@ -293,7 +293,7 @@ sub changed
     }
 
     # count how many files have been modified in the last 24 hours
-    my $cmd = `/bin/find $paths $opts -daystart -mtime -2 -type f -print | wc -l`;
+    my $cmd = `/bin/find $paths $opts -daystart -mtime -2 -type f -print 2>/dev/null | wc -l`;
     chomp $cmd;
 
     # return true if there at least one modified files
