@@ -88,11 +88,8 @@ sub backup_config
    my $fh = File::Temp->new( UNLINK => 0);
    print $fh join("\n",@{$exclude_files});
    my $cmd = "/bin/tar -cpzf ".DESTINATION." -X ".$fh->filename." ".join(" ",@{$include_files})." 2>/dev/null";
-   my $ret = system($cmd);
-   if ($ret != 0) {
-     $self->bad_exit("Can't create tar file ($cmd)",$ret);
-   }
-   return 0;
+   $self->logger("ERROR", "Command was: $cmd");
+   return system($cmd);
 }
 
 

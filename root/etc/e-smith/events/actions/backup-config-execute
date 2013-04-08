@@ -42,9 +42,13 @@ if ($backup->changed(\@include_files, \@exclude_files)) {
        unlink(NethServer::BackupConfig::DESTINATION);
    }
 
-   $backup->backup_config(\@include_files, \@exclude_files); 
-   chmod(0640,NethServer::BackupConfig::DESTINATION);
-   system("/bin/chgrp admin ".NethServer::BackupConfig::DESTINATION);
+   if ( $backup->backup_config(\@include_files, \@exclude_files) == 0) {
+       chmod(0640,NethServer::BackupConfig::DESTINATION);
+       system("/bin/chgrp admin ".NethServer::BackupConfig::DESTINATION);
+   } else {
+       $backup->logger('ERROR',"Can't create tar file.");
+       exit 1;
+   }
 }
 
 
