@@ -88,8 +88,14 @@ sub backup_config
    my $fh = File::Temp->new( UNLINK => 0);
    print $fh join("\n",@{$exclude_files});
    my $cmd = "/bin/tar -cpzf ".DESTINATION." -X ".$fh->filename." ".join(" ",@{$include_files})." 2>/dev/null";
+   my $return = system($cmd);
+   return 0 unless ($return > 0);
+   $return = $return>>8;
+   if ($return == 2) { #ignore non-existing file errors
+       return 0;
+   }
    $self->logger("ERROR", "Command was: $cmd");
-   return system($cmd);
+   return $return;
 }
 
 
