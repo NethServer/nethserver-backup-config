@@ -133,13 +133,12 @@ If status is defined, add the status to the log.
 
 sub bad_exit
 {
-    my ($self, $msg, $status) = @_;
-
+    my ($self, $msg, $status, $log) = @_;
     $msg.= " - ".$status unless !defined($status);
     $self->logger('ERROR',$msg);
 
     if ( ($self->{_notify} eq "error") or ($self->{_notify} eq "always") ) {
-        $self->_send_notification();
+        $self->_send_notification(1,$log);
     }
     unlink $self->{_notification_file};
 
@@ -168,16 +167,20 @@ Send notification if notify type is 'always'.
 
 sub send_notification
 {
-    my ($self) = @_;
+    my ($self, $is_error, $log) = @_;
     if ($self->{_notify} eq "always")  {
-        $self->_send_notification();
+        $self->_send_notification($is_error, $log);
     }
 }
 
 sub _send_notification
 {
-    my ($self) = @_;
+    my ($self, $is_error, $log) = @_;
     my $content;
+    my $status;
+
+    return unless(-f $self->{_notification_file});
+
     open(my $fh, '<', $self->{_notification_file}) or $self->logger("NOTIFY","Can't read notification file");
     {
         local $/;
@@ -188,15 +191,30 @@ sub _send_notification
     $content .= "\n\n\n".sprintf(gettext('Extract from log file %s'),$self->{_log_file}).":\n\n";
     $content .= $self->_extract_log();
     $content .= "\n";
+    if (-f $log) {
+        $content .= "\n\n\n".sprintf(gettext('Extract from log file %s'),$log).":\n\n";
+        open (FILE, $log);
+        while (<FILE>) {
+            $content.=$_;
+        }
+        close FILE;
+        $content .= "\n";
+    }
    
     my $i18n = new esmith::I18N;
     $i18n->setLocale("nethserver-backup");
+    
+    if ($is_error) {
+        $status = ": ".gettext("ERROR");
+    } else {
+        $status = ": ".gettext("SUCCESS");
+    }
 
     my $host = hostname;
     open(MAIL, "|/usr/sbin/sendmail -t");
     print MAIL "To: ".$self->{_notify_to}."\n";
     print MAIL "From: Backup <admin@".$host.">\n";
-    print MAIL "Subject: ".gettext('Backup report')."\n\n";
+    print MAIL "Subject: ".gettext('Backup report').$status."\n\n";
     print MAIL $content;
     close(MAIL);
 
@@ -315,7 +333,7 @@ sub is_mounted
     open FD, '/proc/mounts';
     while (<FD>)
     {
-        next unless /\s$dir\s/;
+        next unless /$dir/;
         $err++;
     }
     close FD;

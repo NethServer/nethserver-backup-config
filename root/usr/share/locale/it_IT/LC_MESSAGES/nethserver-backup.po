@@ -31,3 +31,8 @@ msgstr "Tempo trscorso: %s ore, %s minuti, %s secondi"
 msgid "Backup report"
 msgstr "Report backup"
 
+msgid "SUCCESS"
+msgstr "SUCCESS"
+
+msgid "ERROR"
+msgstr "ERROR"
