@@ -36,3 +36,9 @@ msgstr "SUCCESS"
 
 msgid "ERROR"
 msgstr "ERROR"
+
+msgid "Remove of old backup failed. See: "
+msgstr "Remove of old backup failed. See: "
+
+msgid "Metadata cleanup failed. See:"
+msgstr "Metadata cleanup failed. See:"

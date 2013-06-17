@@ -32,7 +32,14 @@ msgid "Backup report"
 msgstr "Report backup"
 
 msgid "SUCCESS"
-msgstr "SUCCESS"
+msgstr "SUCCESSO"
 
 msgid "ERROR"
-msgstr "ERROR"
+msgstr "ERRORE"
+
+msgid "Remove of old backup failed. See: "
+msgstr "Rimozione vecchi backup fallita. Vedere: "
+
+msgid "Metadata cleanup failed. See:"
+msgstr "Rimozione metadati fallita. Vedere:"
+
