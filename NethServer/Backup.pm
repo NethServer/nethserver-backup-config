@@ -53,8 +53,8 @@ This is the class constructor.
 sub new
 {
     my $class = shift;
-    my $notify = shift || 'error';
-    my $notify_to = shift || 'admin@localhost';
+    my $notify = shift || 'never';
+    my $notify_to = shift || '';
     my $self = {
         _notify => $notify,
         _notify_to => $notify_to,
@@ -101,11 +101,12 @@ sub notify
     shift @_;
     shift @_;
     return unless ($self->{_notify} ne 'never');
+    return unless ($self->{_notify_to} ne '');
     return unless defined($self->{_notification_file});
 
     my $i18n = new esmith::I18N;
     $i18n->setLocale("nethserver-backup");
-    
+   
     open(FILE, ">>".$self->{_notification_file});
     print FILE sprintf(gettext($message)."\n",@_);
     close(FILE);
@@ -137,10 +138,12 @@ sub bad_exit
     $msg.= " - ".$status unless !defined($status);
     $self->logger('ERROR',$msg);
 
-    if ( ($self->{_notify} eq "error") or ($self->{_notify} eq "always") ) {
-        $self->_send_notification(1,$log);
+    if ($self->{_notify_to} ne '') { #avoid notification if not directlry requested
+        if ( ($self->{_notify} eq "error") or ($self->{_notify} eq "always") ) {
+            $self->_send_notification(1,$log);
+        }
+        unlink $self->{_notification_file};
     }
-    unlink $self->{_notification_file};
 
     exit(1) unless defined($status);
     exit($status);
