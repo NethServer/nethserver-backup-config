@@ -191,7 +191,7 @@ sub _send_notification
     $content .= "\n\n\n".sprintf(gettext('Extract from log file %s'),$self->{_log_file}).":\n\n";
     $content .= $self->_extract_log();
     $content .= "\n";
-    if (-f $log) {
+    if (defined($log) && -f $log) {
         $content .= "\n\n\n".sprintf(gettext('Extract from log file %s'),$log).":\n\n";
         open (FILE, $log);
         while (<FILE>) {
