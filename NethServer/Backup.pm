@@ -145,8 +145,7 @@ sub bad_exit
         unlink $self->{_notification_file};
     }
 
-    exit(1) unless defined($status);
-    exit($status);
+    exit(1);
 }
 
 

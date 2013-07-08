@@ -29,6 +29,15 @@ $backup->set_log_file("/var/log/restore-config.log");
 
 $backup->logger("START","Restore config started");
 
+if ( ! -f NethServer::BackupConfig::DESTINATION ) {
+    my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
+    my $bd = $conf->get('backup-data');
+    my $program = $bd->prop('Program') || 'duplicity';
+    if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".NethServer::BackupConfig::DESTINATION)) {
+        $backup->bad_exit("No configuration backup file found or can't extract from data backup");
+    }
+}
+
 if ($status = system(qw(signal-event pre-restore-config)))
 {
     $backup->bad_exit("Event pre-restore-config failed", $status);

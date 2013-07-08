@@ -39,9 +39,12 @@ $event = "nethserver-backup-config-save";
 
 
 #--------------------------------------------------
-# actions for nethserver-backup-config-uninstall event
+# actions for post-restore-config event
 #--------------------------------------------------
 
-$event = "nethserver-backup-config-uninstall";
+my $event = "post-restore-config";
+
+event_actions($event, 'nethserver-backup-config-network-restart' => '80');
+event_actions($event, 'system-adjust' => '90');
 
 exit;
