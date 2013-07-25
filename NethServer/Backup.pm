@@ -237,7 +237,6 @@ sub load_file_list
 
     while (<FILE>) {
         chop($_);
-        next if (/.*\*.*/);
         push(@paths, $_);
     }
     close(FILE);
