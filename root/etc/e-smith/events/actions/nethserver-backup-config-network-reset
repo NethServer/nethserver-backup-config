@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+use esmith::NetworksDB;
+use strict;
+
+my $errors = 0;
+my $idb = esmith::NetworksDB->open();
+my @interfaces = $idb->interfaces;
+
+foreach my $i (@interfaces) {
+    $i->delete();
+}
+
+$errors += system('/usr/libexec/nethserver/initialize-networks-database');
+
+exit ($errors>0?1:0);
