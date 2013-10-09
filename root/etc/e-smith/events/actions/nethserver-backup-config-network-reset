@@ -10,6 +10,6 @@ foreach my $i (@interfaces) {
     $i->delete();
 }
 
-$errors += system('/usr/libexec/nethserver/initialize-networks-database');
+$errors += system('/usr/libexec/nethserver/update-networks-db');
 
 exit ($errors>0?1:0);
