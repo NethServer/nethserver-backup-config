@@ -21,36 +21,56 @@
 #
 
 use strict;
+use File::Find;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
 
-my $backup = new NethServer::BackupConfig();
-
-# Read include and exclude from config directory
-my @include_files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
-if (!@include_files) {
-    $backup->logger('ERROR',"Nothing to backup - 1");
-    exit 1;
+sub not_in_rpm {
+    my ( $list, $exclude, $file) = @_;
+    if (grep $_ eq $File::Find::name, @$exclude) {
+        return;
+    }
+    if (-f $File::Find::name && system("/bin/rpm -qf ".$File::Find::name." >/dev/null") != 0) {
+       push(@$list, $File::Find::name);
+    }
 }
-my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
 
-# if any file is changed, execute the backup
-if ($backup->changed(\@include_files, \@exclude_files)) {
-
-    # remove destination file if already exists
-    if ( -e NethServer::BackupConfig::DESTINATION ) {
-       unlink(NethServer::BackupConfig::DESTINATION);
-   }
-
-   if ( $backup->backup_config(\@include_files, \@exclude_files) == 0) {
+sub do_backup {
+   my ( $backup, $include, $exclude) = @_;
+   if ( $backup->backup_config($include, $exclude) == 0) {
        chmod(0640,NethServer::BackupConfig::DESTINATION);
-       system("/bin/chgrp admin ".NethServer::BackupConfig::DESTINATION);
+       system("/usr/libexec/nethserver/backup-config-md5 ".NethServer::BackupConfig::DESTINATION);
    } else {
        $backup->logger('ERROR',"Can't create tar file.");
        exit 1;
    }
 }
 
+my $backup = new NethServer::BackupConfig();
+my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
+
+# Read include and exclude from config directory
+my @files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
+my @include_files = ();
+# Excludes file belonging to rpm 
+for my $file (@files) {
+    find ( sub { not_in_rpm (\@include_files, \@exclude_files, $_) }, $file );
+}
+
+if (!@include_files) {
+    $backup->logger('ERROR',"Nothing to backup - 1");
+    exit 1;
+}
+   
+# Create backup if destination file doesn't exists
+if ( ! -e NethServer::BackupConfig::DESTINATION ) {
+   do_backup ( $backup, \@include_files, \@exclude_files);
+} else { # Or any file is changed
+    my $cmd = "/usr/bin/md5sum --status -c ".NethServer::BackupConfig::DESTINATION."-content.md5 2>/dev/null";
+    if ( system($cmd) != 0) {
+        do_backup ( $backup, \@include_files, \@exclude_files);
+    }
+}
+
 
 exit 0;
-
