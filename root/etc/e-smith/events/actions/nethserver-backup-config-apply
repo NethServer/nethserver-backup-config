@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# This event will reconfigure the entire system
+/sbin/e-smith/signal-event hostname-modify
