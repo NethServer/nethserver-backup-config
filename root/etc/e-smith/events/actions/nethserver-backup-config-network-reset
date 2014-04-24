@@ -2,6 +2,13 @@
 use esmith::NetworksDB;
 use strict;
 
+my ($event, $samehardware) = @ARGV;
+
+# skip network configuration if restore backup on same hardware
+if ($samehardware == 1) {
+    exit(0);
+}
+
 my $errors = 0;
 my $idb = esmith::NetworksDB->open();
 my @interfaces = $idb->interfaces;

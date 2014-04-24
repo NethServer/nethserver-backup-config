@@ -21,8 +21,11 @@
 
 use strict;
 use NethServer::BackupConfig;
+use Getopt::Long;
 
 my $status;
+my $samehardware = '';
+GetOptions("same-hardware!"=>\$samehardware);
 
 my $backup = new NethServer::BackupConfig();
 $backup->set_log_file("/var/log/restore-config.log");
@@ -38,19 +41,20 @@ if ( ! -f NethServer::BackupConfig::DESTINATION ) {
     }
 }
 
-if ($status = system(qw(signal-event pre-restore-config)))
+
+if ($status = system("signal-event pre-restore-config $samehardware"))
 {
     $backup->bad_exit("Event pre-restore-config failed", $status);
 }
 $backup->logger("STEP","pre-restore-config done");
 
-if ($status = system("/etc/e-smith/events/actions/restore-config-execute"))
+if ($status = system("/etc/e-smith/events/actions/restore-config-execute $samehardware"))
 {
     $backup->bad_exit("Action restore-config-execute failed", $status);
 }
 $backup->logger("STEP","restore-config-execute done");
 
-if ($status = system(qw(signal-event post-restore-config)))
+if ($status = system("signal-event post-restore-config $samehardware"))
 {
     $backup->bad_exit("Event post-restore-config failed", $status);
 }
