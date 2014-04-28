@@ -30,7 +30,7 @@ use vars qw($VERSION @ISA @EXPORT_OK);
 use constant LOG_FILE => "/var/log/backup-config.log";
 use constant NOTIFICATION_FILE => "/tmp/backup-config-notification";
 use constant CONF_DIR => "/etc/backup-config.d/";
-use constant DESTINATION => "/var/lib/nethserver/backup/backup-config.tar.gz";
+use constant DESTINATION => "/var/lib/nethserver/backup/backup-config.tar.xz";
 
 
 @ISA = qw(NethServer::Backup);
@@ -78,16 +78,18 @@ sub new
 =head2 backup_config
 
 Takes two array: a list of files to be included and a list of files to be excluded.
-Create a tar file in BACKUP_CONFIG_DESTINATION.
+Create an archive (tar.xz) file in BACKUP_CONFIG_DESTINATION.
 
 =cut
 
 sub backup_config
 {
    my ($self, $include_files, $exclude_files) = @_;
-   my $fh = File::Temp->new( UNLINK => 0);
+   my $fh = File::Temp->new( UNLINK => 1);
    print $fh join("\n",@{$exclude_files});
-   my $cmd = "/bin/tar -cpzf ".DESTINATION." -X ".$fh->filename." ".join(" ",@{$include_files})." 2>/dev/null";
+   my $fhi = File::Temp->new( UNLINK => 1);
+   print $fhi join("\n",@{$include_files});
+   my $cmd = "/bin/tar cpJf ".DESTINATION." -X ".$fh->filename." -T ".$fhi->filename." 2>/dev/null";
    my $return = system($cmd);
    return 0 unless ($return > 0);
    $return = $return>>8;

@@ -44,6 +44,9 @@ $event = "nethserver-backup-config-save";
 
 my $event = "post-restore-config";
 
-event_actions($event, 'nethserver-backup-config-network-reset' => '80');
+event_actions($event, 
+    'nethserver-backup-config-apply' => '70',
+    'nethserver-backup-config-network-reset' => '80'
+);
 
 exit;
