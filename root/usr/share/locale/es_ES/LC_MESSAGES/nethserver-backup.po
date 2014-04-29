@@ -1,0 +1,44 @@
+msgid "Backup started at %s"
+msgstr "La copia de seguridad se inició a %s"
+
+msgid "Pre backup scripts status: ERROR"
+msgstr "Pre estado de la secuencia de comandos de la copia de seguridad: ERROR"
+
+msgid "Pre backup scripts status: SUCCESS"
+msgstr "Pre estado de la secuencia de comandos de la copia de seguridad: SUCCESS"
+
+msgid "Backup script status: ERROR"
+msgstr "Estado de la secuencia de comandos de la copia de seguridad: ERROR"
+
+msgid "Backup script status: SUCCESS"
+msgstr "Estado de la secuencia de comandos de la copia de seguridad: SUCCESS"
+
+msgid "Post backup scripts status: ERROR"
+msgstr "Estado posterior de la secuencia de comandos de la copia de seguridad: ERROR"
+
+msgid "Post backup scripts status: SUCCESS"
+msgstr "Estado posterior de la secuencia de comandos de la copia de seguridad: SUCCESS"
+
+msgid "Backup status: SUCCESS"
+msgstr "El estado de copia de seguridad: SUCCESS"
+
+msgid "Backup ended at %s"
+msgstr "La copia de seguridad terminó en %s"
+
+msgid "Time elapsed: %s hours, %s minutes, %s seconds"
+msgstr "Tiempo transcurrido: %s horas, %s minutos, %s segundos"
+
+msgid "Backup report"
+msgstr "Informe de copia de seguridad"
+
+msgid "SUCCESS"
+msgstr "EXITOSO"
+
+msgid "ERROR"
+msgstr "ERROR"
+
+msgid "Remove of old backup failed. See: "
+msgstr "Retire la vieja copia de seguridad que falló. ver: "
+
+msgid "Metadata cleanup failed. See:"
+msgstr "La limpieza de metadatos ha fallado. Ver:"
