@@ -8,6 +8,6 @@ echo "<div>".$T('confirm_backup_label')."</div>";
 
 echo $view->buttonList()
     ->insert($view->button('Execute', $view::BUTTON_SUBMIT))
-    ->insert($view->button('Close', $view::BUTTON_CANCEL))
+    ->insert($view->button('Cancel', $view::BUTTON_CANCEL))
 ;
 

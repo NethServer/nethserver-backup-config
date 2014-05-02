@@ -20,24 +20,24 @@ namespace NethServer\Module\BackupConfig;
  */
 
 /**
- * Force configuration backup
+ * Execute restore of  configuration backup
  *
  * @author Giacomo Sanchietti <giacomo.sanchietti@nethesis.it>
  */
-class ForceBackup extends \Nethgui\Controller\AbstractController 
+class ExecuteRestore extends \Nethgui\Controller\AbstractController 
 {
     public function process()
     {
-        if ( ! $this->getRequest()->isMutation()) {
-            return;
-        } else {
-            $ret = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config')->getExitCode();
-        }
-    }
+        parent::process();
+        if ($this->getRequest()->isMutation()) {
+            if ($this->getRequest()->getParameter('SameHardware') == 1) {
+                $option = '--same-hardware';
+            } else {
+                $option = '';
+            }
 
-    public function nextPath()
-    {
-        return $this->getRequest()->isMutation() ? 'Restore' : parent::nextPath();
+            $this->result = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/restore-config ${@}', array($option), true)->getExitCode();
+        }
     }
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
@@ -45,6 +45,7 @@ class ForceBackup extends \Nethgui\Controller\AbstractController
         parent::prepareView($view);
         if ( ! $this->getRequest()->isMutation()) {
             $view->getCommandList()->show();
-        } 
+        }
+ 
     }
 }

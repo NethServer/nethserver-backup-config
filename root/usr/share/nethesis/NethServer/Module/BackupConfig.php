@@ -35,6 +35,7 @@ class BackupConfig extends \Nethgui\Controller\CompositeController
         parent::initialize();
         $this->addChild(new \NethServer\Module\BackupConfig\Restore()); 
         $this->addChild(new \NethServer\Module\BackupConfig\ForceBackup()); 
+        $this->addChild(new \NethServer\Module\BackupConfig\ExecuteRestore()); 
     }
 
 }

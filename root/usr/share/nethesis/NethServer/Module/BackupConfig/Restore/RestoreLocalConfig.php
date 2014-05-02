@@ -31,22 +31,10 @@ class RestoreLocalConfig extends \Nethgui\Controller\AbstractController
 {
     private $backup;
 
-    public function initialize()
-    {
-        parent::initialize();
-        $this->declareParameter('SystemName', $this->createValidator()->memberOf(array('0','1')));
-    }
-
-    public function bind(\Nethgui\Controller\RequestInterface $request)
-    {
-        parent::bind($request);        
-    }
-
     private function getBackupInfo()
     {
         return json_decode($this->getPlatform()->exec('/usr/libexec/nethserver/backup-config-info')->getOutput(), TRUE); 
     }
-
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
@@ -60,13 +48,11 @@ class RestoreLocalConfig extends \Nethgui\Controller\AbstractController
             $view['size'] = '-';
             $view['date'] = '-';
         }
-       # $view['backup'] = $this->backup;
 
         if (!isset($this->parameters['SameHardware'])) {
             $view['SameHardware'] = '0';
         }
         $view['ForceBackup'] = $view->getModuleUrl('/BackupConfig/ForceBackup'); 
+        $view['Restore'] = $view->getModuleUrl('/BackupConfig/ExecuteRestore'); 
     }
-
-
 }

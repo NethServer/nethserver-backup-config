@@ -42,7 +42,7 @@ if ( ! -f NethServer::BackupConfig::DESTINATION ) {
 }
 
 
-if ($status = system("signal-event pre-restore-config $samehardware"))
+if ($status = system("/sbin/e-smith/signal-event pre-restore-config $samehardware"))
 {
     $backup->bad_exit("Event pre-restore-config failed", $status);
 }
@@ -54,7 +54,7 @@ if ($status = system("/etc/e-smith/events/actions/restore-config-execute $sameha
 }
 $backup->logger("STEP","restore-config-execute done");
 
-if ($status = system("signal-event post-restore-config $samehardware"))
+if ($status = system("/sbin/e-smith/signal-event post-restore-config $samehardware"))
 {
     $backup->bad_exit("Event post-restore-config failed", $status);
 }
