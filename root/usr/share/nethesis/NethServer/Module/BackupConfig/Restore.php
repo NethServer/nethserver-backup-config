@@ -20,16 +20,53 @@ namespace NethServer\Module\BackupConfig;
  * along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use Nethgui\System\PlatformInterface as Validate;
+
 /**
- * Implementation of backup restore.
+ * Restore a local configuration backup
+ *
+ * @author Giacomo Sanchietti <giacomo.sanchietti@nethesis.it>
  */
-class Restore extends \Nethgui\Controller\TabsController
+class Restore extends \Nethgui\Controller\AbstractController
 {
+    private $backup;
 
     public function initialize()
     {
         parent::initialize();
-        $this->loadChildrenDirectory();
+        $this->declareParameter('SystemName', $this->createValidator()->memberOf(array('0','1')));
     }
+
+    public function bind(\Nethgui\Controller\RequestInterface $request)
+    {
+        parent::bind($request);        
+    }
+
+    private function getBackupInfo()
+    {
+        return json_decode($this->getPlatform()->exec('/usr/libexec/nethserver/backup-config-info')->getOutput(), TRUE); 
+    }
+
+
+    public function prepareView(\Nethgui\View\ViewInterface $view)
+    {
+        if (!$this->backup) {
+            $this->backup = $this->getBackupInfo();
+        }
+        if (isset($this->backup['size'])) {
+            $view['size'] = round($this->backup['size'] / 1024,2).' KB';
+            $view['date'] = date("o-m-d G:i", $this->backup['date']);
+        } else {
+            $view['size'] = '-';
+            $view['date'] = '-';
+        }
+       # $view['backup'] = $this->backup;
+
+        if (!isset($this->parameters['SameHardware'])) {
+            $view['SameHardware'] = '0';
+        }
+        $view['ForceBackup'] = $view->getModuleUrl('/BackupConfig/ForceBackup'); 
+    }
+
 
 }

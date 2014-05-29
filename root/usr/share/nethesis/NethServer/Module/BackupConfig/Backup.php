@@ -1,39 +1,50 @@
 <?php
-namespace NethServer\Module\BackupConfig\Restore;
-
+namespace NethServer\Module\BackupConfig;
 /*
- * Copyright (C) 2011 Nethesis S.r.l.
- * 
+ * Copyright (C) 2012 Nethesis S.r.l.
+ *
  * This script is part of NethServer.
- * 
+ *
  * NethServer is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * NethServer is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use Nethgui\System\PlatformInterface as Validate;
-
 /**
- * Restore a local configuration backup
+ * Force configuration backup
  *
  * @author Giacomo Sanchietti <giacomo.sanchietti@nethesis.it>
  */
-class RestoreLocalConfig extends \Nethgui\Controller\AbstractController
+class Backup extends \Nethgui\Controller\AbstractController 
 {
+
     private $backup;
+
+    public function process()
+    {
+        if ( ! $this->getRequest()->isMutation()) {
+            return;
+        } else {
+            $ret = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config')->getExitCode();
+        }
+    }
+    public function nextPath()
+    {
+        return $this->getRequest()->isMutation() ? 'Backup' : parent::nextPath();
+    }
 
     private function getBackupInfo()
     {
-        return json_decode($this->getPlatform()->exec('/usr/libexec/nethserver/backup-config-info')->getOutput(), TRUE); 
+        return json_decode($this->getPlatform()->exec('/usr/libexec/nethserver/backup-config-info')->getOutput(), TRUE);
     }
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
@@ -48,11 +59,6 @@ class RestoreLocalConfig extends \Nethgui\Controller\AbstractController
             $view['size'] = '-';
             $view['date'] = '-';
         }
-
-        if (!isset($this->parameters['SameHardware'])) {
-            $view['SameHardware'] = '0';
-        }
-        $view['ForceBackup'] = $view->getModuleUrl('/BackupConfig/ForceBackup'); 
-        $view['Restore'] = $view->getModuleUrl('/BackupConfig/ExecuteRestore'); 
     }
+
 }

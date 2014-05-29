@@ -35,8 +35,7 @@ echo $view->panel()
     ->insert($view->radioButton('SameHardware', '0'));
 
 echo $view->buttonList()
-    ->insert($view->button('Restore', $view::BUTTON_LINK))
-    ->insert($view->button('ForceBackup', $view::BUTTON_LINK))
+    ->insert($view->button('Restore', $view::BUTTON_SUBMIT))
     ->insert($view->button('Help', $view::BUTTON_HELP))
 ;
 

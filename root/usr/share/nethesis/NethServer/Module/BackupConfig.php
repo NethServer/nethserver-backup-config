@@ -23,7 +23,7 @@ namespace NethServer\Module;
 /**
  * Implementation of configuration backup.
  */
-class BackupConfig extends \Nethgui\Controller\CompositeController
+class BackupConfig extends  \Nethgui\Controller\TabsController
 {
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
     {
@@ -33,10 +33,7 @@ class BackupConfig extends \Nethgui\Controller\CompositeController
     public function initialize()
     {
         parent::initialize();
-        $this->addChild(new \NethServer\Module\BackupConfig\Restore()); 
-        $this->addChild(new \NethServer\Module\BackupConfig\ForceBackup()); 
-        $this->addChild(new \NethServer\Module\BackupConfig\ExecuteRestore()); 
+        $this->loadChildrenDirectory();
     }
 
 }
-
