@@ -38,7 +38,7 @@ mv -v NethServer root%{perl_vendorlib}
 
 for f in `/bin/ls root/usr/share/locale/*/LC_MESSAGES/nethserver-backup.po`; do
    out=`dirname $f`
-   /usr/bin/msgfmt $f -o $out/nethserver.po
+   /usr/bin/msgfmt $f -o $out/nethserver-backup.mo
    rm -f $f
 done
 
