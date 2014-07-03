@@ -54,7 +54,9 @@ my @files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
 my @include_files = ();
 # Excludes file belonging to rpm 
 for my $file (@files) {
-    find ( sub { not_in_rpm (\@include_files, \@exclude_files, $_) }, $file );
+    if ( -f $file) {
+        find ( sub { not_in_rpm (\@include_files, \@exclude_files, $_) }, $file );
+    }
 }
 
 if (!@include_files) {
