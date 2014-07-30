@@ -432,6 +432,43 @@ sub _extract_log
     close FILE;
     return $ret;
 }
+
+=head2 is_running
+
+Check if a process is running.
+Takes the process name as argument.
+
+Return 1 if process is running, 0 otherwise.
+
+=cut
+
+sub is_running {
+    my $self = shift;
+    my $target_name = shift || return 0;
+    my $process_pid = -1;
+    my $status;
+
+    opendir (my $proc_dir, "/proc/") or die ("Cannot open \"/proc/\"\n");
+
+    while (my $pid = readdir ($proc_dir))
+    {
+        if ($pid =~ m/[0-9]+/ && $pid != $$) # search for integer pid except for the current one
+        {
+            open(FILE, "/proc/$pid/comm") or next;
+            my $command_name = <FILE>;
+            chomp ($command_name); #remove trailing new line
+            if ($command_name eq $target_name) {
+                closedir($proc_dir);
+                close(FILE);
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
 =head1 AUTHOR
 
 Nethsis srl <support@nethesis.it>
