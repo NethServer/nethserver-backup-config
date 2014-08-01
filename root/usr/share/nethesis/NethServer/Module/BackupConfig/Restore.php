@@ -37,9 +37,17 @@ class Restore extends \Nethgui\Controller\AbstractController
         $this->declareParameter('SystemName', $this->createValidator()->memberOf(array('0','1')));
     }
 
-    public function bind(\Nethgui\Controller\RequestInterface $request)
+    public function process()
     {
-        parent::bind($request);        
+        if ( ! $this->getRequest()->isMutation()) {
+            return;
+        } else {
+            $args = array();
+            if ($this->getRequest()->getParameter('SameHardware')) {
+               $args[] = "--same-hardware";
+            }
+            $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/restore-config ${@}',$args,TRUE);
+        }
     }
 
     private function getBackupInfo()
@@ -60,7 +68,6 @@ class Restore extends \Nethgui\Controller\AbstractController
             $view['size'] = '-';
             $view['date'] = '-';
         }
-       # $view['backup'] = $this->backup;
 
         if (!isset($this->parameters['SameHardware'])) {
             $view['SameHardware'] = '0';

@@ -31,10 +31,12 @@ class Backup extends \Nethgui\Controller\AbstractController
 
     public function process()
     {
+	parent::process();
         if ( ! $this->getRequest()->isMutation()) {
             return;
         } else {
-            $ret = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config')->getExitCode();
+            $ret = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config',array(),TRUE);
+            #$this->getPlatform()->signalEvent('pre-backup-config &');
         }
     }
     public function nextPath()
@@ -49,6 +51,7 @@ class Backup extends \Nethgui\Controller\AbstractController
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
+	parent::prepareView($view);
         if (!$this->backup) {
             $this->backup = $this->getBackupInfo();
         }

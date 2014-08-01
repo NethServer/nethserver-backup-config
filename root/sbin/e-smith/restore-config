@@ -21,6 +21,7 @@
 
 use strict;
 use NethServer::BackupConfig;
+use NethServer::TrackerClient;
 use Getopt::Long;
 
 my $status;
@@ -28,36 +29,59 @@ my $samehardware = '';
 GetOptions("same-hardware!"=>\$samehardware);
 
 my $backup = new NethServer::BackupConfig();
+
+my $tracker = NethServer::TrackerClient->new();
+
+my %tasks = ();
+$tasks{'extract'} = $tracker->declare_task('Extracting backup');
+$tasks{'pre'} = $tracker->declare_task('Preparing restore');
+$tasks{'execute'} = $tracker->declare_task('Executing restore');
+$tasks{'post'} = $tracker->declare_task('Reconfiguring system');
+
 $backup->set_log_file("/var/log/restore-config.log");
 
 $backup->logger("START","Restore config started");
 
 if ( ! -f NethServer::BackupConfig::DESTINATION ) {
+    $ENV{'PTRACK_TASKID'} = $tasks{'extract'};
+    $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Extract');
     my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
     my $bd = $conf->get('backup-data');
     my $program = $bd->prop('Program') || 'duplicity';
     if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".NethServer::BackupConfig::DESTINATION)) {
+        $tracker->set_task_done($tasks{'extract'}, "No configuration backup file found or can't extract from data backup", 1);
         $backup->bad_exit("No configuration backup file found or can't extract from data backup");
     }
 }
+$tracker->set_task_done($tasks{'extract'}, 0);
 
-
+$ENV{'PTRACK_TASKID'} = $tasks{'pre'};
+$tracker->set_task_progress($tasks{'pre'}, 0.1, 'Pre-restore');
 if ($status = system("/sbin/e-smith/signal-event pre-restore-config $samehardware"))
 {
+    $tracker->set_task_done($tasks{'extract'}, "Event pre-restore-config failed", 1);
     $backup->bad_exit("Event pre-restore-config failed", $status);
 }
+$tracker->set_task_done($tasks{'pre'}, '', 0);
 $backup->logger("STEP","pre-restore-config done");
 
+$tracker->set_task_progress($tasks{'execute'}, 0.1, 'Restore');
 if ($status = system("/etc/e-smith/events/actions/restore-config-execute $samehardware"))
 {
+    $tracker->set_task_done($tasks{'execute'}, "Action restore-config-execute failed", 1);
     $backup->bad_exit("Action restore-config-execute failed", $status);
 }
+$tracker->set_task_done($tasks{'execute'}, '', 0);
 $backup->logger("STEP","restore-config-execute done");
 
+$ENV{'PTRACK_TASKID'} = $tasks{'post'};
+$tracker->set_task_progress($tasks{'post'}, 0.1, 'Post-restore');
 if ($status = system("/sbin/e-smith/signal-event post-restore-config $samehardware"))
 {
+    $tracker->set_task_done($tasks{'post'}, "Event post-restore-config failed", 1);
     $backup->bad_exit("Event post-restore-config failed", $status);
 }
+$tracker->set_task_done($tasks{'post'}, '', 0);
 
 $backup->logger("SUCCESS","Restore config done");
 

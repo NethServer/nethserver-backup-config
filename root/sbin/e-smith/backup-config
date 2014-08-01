@@ -22,6 +22,7 @@
 use strict;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
+use NethServer::TrackerClient;
 use POSIX qw/strftime/;
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
@@ -30,10 +31,17 @@ my $status = $backup->prop('status') || 'disabled';
 # valid values for notify are: always, error, never
 my $notify = $backup->prop('notify') || 'error';
 my $notify_to = $backup->prop('notifyTo') || 'admin@localhost';
+my $msg = '';
 
 exit 0 unless ($status eq 'enabled');
 
 $backup = new NethServer::BackupConfig($notify,$notify_to);
+my $tracker = NethServer::TrackerClient->new();
+
+my %tasks = ();
+$tasks{'pre'} = $tracker->declare_task('Preparing backup');
+$tasks{'execute'} = $tracker->declare_task('Executing backup');
+$tasks{'post'} = $tracker->declare_task('Cleaning up system');
 
 $backup->cleanup_notification();
 $backup->notify("===== Report for configuration backup =====\n");
@@ -42,28 +50,42 @@ my $start = time;
 $backup->logger("START","Backup config started");
 $backup->notify("Backup started at %s", strftime('%F %T',localtime));
 
+$ENV{'PTRACK_TASKID'} = $tasks{'pre'};
+$tracker->set_task_progress($tasks{'pre'}, 0.1, 'Pre-backup');
 if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-config)))
 {
+    $msg = "Event pre-backup-config failed"; 
     $backup->notify("Pre backup scripts status: ERROR");
-    $backup->bad_exit("Event pre-backup-config failed", $status>>8);
+    $tracker->set_task_done($tasks{'pre'}, $msg, 1);
+    $backup->bad_exit($msg, $status>>8);
 }
 $backup->logger("STEP","pre-backup-config done");
+$tracker->set_task_done($tasks{'pre'}, '', 0);
 $backup->notify("Pre backup scripts status: SUCCESS");
 
+$tracker->set_task_progress($tasks{'execute'}, 0.1, 'Execute');
 if ($status = system("/etc/e-smith/events/actions/backup-config-execute"))
 {
+    $msg = "Action backup-config-execute failed";
     $backup->notify("Backup script status: ERROR");
-    $backup->bad_exit("Action backup-config-execute failed", $status>>8);
+    $tracker->set_task_done($tasks{'execute'}, $msg, 1);
+    $backup->bad_exit($msg, $status>>8);
 }
 $backup->logger("STEP","backup-config-execute done");
+$tracker->set_task_done($tasks{'execute'}, '', 0);
 $backup->notify("Backup script status: SUCCESS");
 
+$ENV{'PTRACK_TASKID'} = $tasks{'post'};
+$tracker->set_task_progress($tasks{'post'}, 0.1, 'Post-backup');
 if ($status = system(qw(/sbin/e-smith/signal-event post-backup-config)))
 {
+    $msg = "Event post-backup-config failed";
     $backup->notify("Post backup scripts status: ERROR");
-    $backup->bad_exit("Event post-backup-config failed", $status>>8);
+    $tracker->set_task_done($tasks{'post'}, $msg, 1);
+    $backup->bad_exit($msg, $status>>8);
 }
 $backup->notify("Post backup scripts status: SUCCESS");
+$tracker->set_task_done($tasks{'post'}, '', 0);
 
 $backup->logger("SUCCESS","Backup config done");
 $backup->notify("Backup status: SUCCESS");
