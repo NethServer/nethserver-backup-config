@@ -25,13 +25,26 @@ use File::Find;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
 
-sub not_in_rpm {
+sub filter_excludes {
     my ( $list, $exclude, $file) = @_;
     if (grep $_ eq $File::Find::name, @$exclude) {
         return;
     }
-    if (-f $File::Find::name && system("/bin/rpm -qf ".$File::Find::name." >/dev/null") != 0) {
-       push(@$list, $File::Find::name);
+    # skip directories
+    return if (-d $File::Find::name);
+
+    my $is_in_rpm = ( -f $File::Find::name && system("/bin/rpm -qf '".$File::Find::name."' >/dev/null") == 0);
+
+    if ($is_in_rpm) {
+        # check sha sum from rpm metadata and current files
+        # (sometimes sha sum differs even if rpm -V doesn't recognize it)
+        my $sha_orig = `/bin/rpm -qf --dump '$File::Find::name' | /bin/grep '$File::Find::name' | /bin/awk '{print \$4}'`;
+        my $sha_new = `/usr/bin/sha256sum '$File::Find::name' | /bin/awk '{print \$1}'`;
+        if ($sha_orig ne $sha_new) {
+            push(@$list, $File::Find::name);
+        }
+    } else {
+        push(@$list, $File::Find::name);
     }
 }
 
@@ -52,10 +65,9 @@ my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
 # Read include and exclude from config directory
 my @files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
 my @include_files = ();
-# Excludes file belonging to rpm 
 for my $file (@files) {
-    if ( -f $file) {
-        find ( sub { not_in_rpm (\@include_files, \@exclude_files, $_) }, $file );
+    if ( -e $file) {
+        find ( sub { filter_excludes (\@include_files, \@exclude_files, $_) }, $file );
     }
 }
 
