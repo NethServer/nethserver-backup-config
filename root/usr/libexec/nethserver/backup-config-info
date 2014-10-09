@@ -1,0 +1,18 @@
+#!/usr/bin/perl -w
+
+use strict;
+use NethServer::BackupConfig;
+use esmith::ConfigDB;
+use JSON;
+
+my %backup;
+if ( -f NethServer::BackupConfig::DESTINATION ) {
+    my @stats = stat(NethServer::BackupConfig::DESTINATION);
+    $backup{'name'} = NethServer::BackupConfig::DESTINATION; 
+    $backup{'date'} = $stats[9]; 
+    $backup{'size'} = $stats[7]; 
+}
+
+print to_json(\%backup);
+
+exit(0);
