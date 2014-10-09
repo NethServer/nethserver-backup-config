@@ -33,10 +33,10 @@ my $backup = new NethServer::BackupConfig();
 my $tracker = NethServer::TrackerClient->new();
 
 my %tasks = ();
-$tasks{'extract'} = $tracker->declare_task('Extracting backup');
-$tasks{'pre'} = $tracker->declare_task('Preparing restore');
-$tasks{'execute'} = $tracker->declare_task('Executing restore');
-$tasks{'post'} = $tracker->declare_task('Reconfiguring system');
+$tasks{'extract'} = $tracker->declare_task('Extracting backup', 0.05);
+$tasks{'pre'} = $tracker->declare_task('Preparing restore', 0.05);
+$tasks{'execute'} = $tracker->declare_task('Executing restore', 0.1);
+$tasks{'post'} = $tracker->declare_task('Reconfiguring system', 8.0);
 
 $backup->set_log_file("/var/log/restore-config.log");
 
