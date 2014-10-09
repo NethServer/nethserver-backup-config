@@ -58,6 +58,11 @@ class Restore extends \Nethgui\Controller\AbstractController
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
+        parent::prepareView($view);
+        // Avoid second exec call Bug #2901
+        if ($this->getRequest()->isMutation()) {
+            return;
+        }
         if (!$this->backup) {
             $this->backup = $this->getBackupInfo();
         }

@@ -35,8 +35,7 @@ class Backup extends \Nethgui\Controller\AbstractController
         if ( ! $this->getRequest()->isMutation()) {
             return;
         } else {
-            $ret = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config',array(),TRUE);
-            #$this->getPlatform()->signalEvent('pre-backup-config &');
+            $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config');
         }
     }
     public function nextPath()
