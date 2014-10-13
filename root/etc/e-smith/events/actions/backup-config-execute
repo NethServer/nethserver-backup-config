@@ -20,6 +20,11 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+#
+# Execute configuration backup only if needed
+# Backup is saved in: /var/lib/nethserver/backup/backup-config.tar.xz
+#
+
 use strict;
 use File::Find;
 use esmith::ConfigDB;
@@ -27,25 +32,17 @@ use NethServer::BackupConfig;
 
 sub filter_excludes {
     my ( $list, $exclude, $file) = @_;
-    if (grep $_ eq $File::Find::name, @$exclude) {
-        return;
-    }
+    
     # skip directories
     return if (-d $File::Find::name);
 
-    my $is_in_rpm = ( -f $File::Find::name && system("/bin/rpm -qf '".$File::Find::name."' >/dev/null") == 0);
-
-    if ($is_in_rpm) {
-        # check sha sum from rpm metadata and current files
-        # (sometimes sha sum differs even if rpm -V doesn't recognize it)
-        my $sha_orig = `/bin/rpm -qf --dump '$File::Find::name' | /bin/grep '$File::Find::name' | /bin/awk '{print \$4}'`;
-        my $sha_new = `/usr/bin/sha256sum '$File::Find::name' | /bin/awk '{print \$1}'`;
-        if ($sha_orig ne $sha_new) {
-            push(@$list, $File::Find::name);
-        }
-    } else {
-        push(@$list, $File::Find::name);
+    # skip excludes
+    if (grep $_ eq $File::Find::name, @$exclude) {
+        return;
     }
+
+    # add files
+    push(@$list, $File::Find::name);
 }
 
 sub do_backup {
@@ -57,6 +54,32 @@ sub do_backup {
        $backup->logger('ERROR',"Can't create tar file.");
        exit 1;
    }
+}
+
+#
+# Takes a md5 file and a list of files as arguments.
+#   Return 1 if files are the same in both lists
+#   Return 0 otherwise
+sub same_files {
+    my ($file, $includes) = @_;
+    my @lines;
+    my $k = 0;
+    open FILE, "<", $file or die($!);
+    while (<FILE>) {
+       $k++;
+       my @tmp = split(/\s/,$_,2);
+       $tmp[1] =~ s/^\s+//;
+       $tmp[1] =~ s/\s+$//;
+       push(@lines,$tmp[1]);
+    }
+    close FILE;
+
+    my $n = scalar @$includes;
+    if ($n != $k) {
+        return 0;
+    }
+
+    return @$includes ~~ @lines;
 }
 
 my $backup = new NethServer::BackupConfig();
@@ -72,19 +95,21 @@ for my $file (@files) {
 }
 
 if (!@include_files) {
-    $backup->logger('ERROR',"Nothing to backup - 1");
+    $backup->logger('ERROR',"FATAL: no file in backup list - 1");
     exit 1;
 }
    
-# Create backup if destination file doesn't exists
-if ( ! -e NethServer::BackupConfig::DESTINATION ) {
-   do_backup ( $backup, \@include_files, \@exclude_files);
-} else { # Or any file is changed
-    my $cmd = "/usr/bin/md5sum --status -c ".NethServer::BackupConfig::DESTINATION."-content.md5 2>/dev/null";
-    if ( system($cmd) != 0) {
-        do_backup ( $backup, \@include_files, \@exclude_files);
-    }
-}
+my $md5_content = NethServer::BackupConfig::DESTINATION."-content.md5";
+my $cmd = "/usr/bin/md5sum --status -c $md5_content 2>/dev/null";
 
+# Execute backup if:
+#  * backup file does not exist
+#  * file list is changed 
+#  * md5sum doesn't match (file contents is changed)
+if ( ! -e NethServer::BackupConfig::DESTINATION ||
+    ! same_files($md5_content, \@include_files) ||
+    system($cmd) != 0 ) {
+    do_backup ( $backup, \@include_files, \@exclude_files);
+}
 
 exit 0;
