@@ -20,6 +20,7 @@
 #
 
 use strict;
+use esmith::ConfigDB;
 use NethServer::BackupConfig;
 use NethServer::TrackerClient;
 use Getopt::Long;
