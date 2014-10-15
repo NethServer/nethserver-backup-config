@@ -107,6 +107,7 @@ my $cmd = "/usr/bin/md5sum --status -c $md5_content 2>/dev/null";
 #  * file list is changed 
 #  * md5sum doesn't match (file contents is changed)
 if ( ! -e NethServer::BackupConfig::DESTINATION ||
+    ! -e $md5_content ||
     ! same_files($md5_content, \@include_files) ||
     system($cmd) != 0 ) {
     do_backup ( $backup, \@include_files, \@exclude_files);
