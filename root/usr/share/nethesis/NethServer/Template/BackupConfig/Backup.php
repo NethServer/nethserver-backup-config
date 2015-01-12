@@ -12,6 +12,7 @@ echo "<div id='bc_module_warning' class='ui-state-highlight'><span class='ui-ico
 
 echo $view->buttonList()
     ->insert($view->button('Execute', $view::BUTTON_SUBMIT))
+    ->insert($view->button('Help', $view::BUTTON_HELP))
 ;
 
 

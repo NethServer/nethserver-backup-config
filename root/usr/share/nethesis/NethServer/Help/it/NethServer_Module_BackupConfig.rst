@@ -10,7 +10,7 @@ Backup
 Il backup della configurazione contiene solo i file di configurazione.
 Questo tipo di backup viene eseguito solo se i file sono stati modificati nelle ultime 24 ore.
 
-E' possibile forzare il backup a usando il pulsante :guilabebl:`Esegui ora`.
+E' possibile forzare il backup a usando il pulsante *Esegui ora*.
 Il backup verrò sovrascritto solo se necessario.
 
 Ripsitino

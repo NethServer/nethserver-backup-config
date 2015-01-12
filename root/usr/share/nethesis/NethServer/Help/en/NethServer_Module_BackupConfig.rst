@@ -10,7 +10,7 @@ Backup
 Configuration backup contains only system configuration files.
 This type of backup is executed only if any file is changed in the last 24 hours.
 
-You can force the execution of a new backup using the :guilabebl:`Backup now` button.
+You can force the execution of a new backup using the *Backup now* button.
 The backup will be overwritten only if necessary.
 
 Restore
