@@ -15,15 +15,11 @@ AutoReq: no
 %description
 NethServer fast backup of config files
 
-
-%preun
-
-%post
-
 %prep
 %setup
 
 %build
+%{makedocs}
 perl createlinks
 
 # create events
