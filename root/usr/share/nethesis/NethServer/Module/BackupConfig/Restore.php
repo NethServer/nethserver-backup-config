@@ -27,9 +27,15 @@ use Nethgui\System\PlatformInterface as Validate;
  *
  * @author Giacomo Sanchietti <giacomo.sanchietti@nethesis.it>
  */
-class Restore extends \Nethgui\Controller\AbstractController
+class Restore extends \Nethgui\Controller\AbstractController implements \Nethgui\Component\DependencyConsumer
 {
     private $backup;
+
+    /**
+     *
+     * @var \Nethgui\Module\Notification
+     */
+    private $notifications;
 
     public function initialize()
     {
@@ -50,11 +56,28 @@ class Restore extends \Nethgui\Controller\AbstractController
     }
 
 
+    public function setUserNotifications(\Nethgui\Model\UserNotifications $n)
+    {
+        $this->notifications = $n;
+        return $this;
+    }
+
+    public function getDependencySetters()
+    {
+        return array('UserNotifications' => array($this, 'setUserNotifications'));
+    }
+
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
         parent::prepareView($view);
+        $this->notifications->defineTemplate('adminTodo', \NethServer\Module\AdminTodo::TEMPLATE, 'bg-yellow');
         // Avoid second exec call Bug #2901
         if ($this->getRequest()->isMutation()) {
+            $this->getPlatform()->setDetachedProcessCondition('success', array(
+                'location' => array(
+                    'url' => $view->getModuleUrl('/AdminTodo?notifications'),
+                    'freeze' => TRUE,
+            )));
             return;
         }
         if (!$this->backup) {
