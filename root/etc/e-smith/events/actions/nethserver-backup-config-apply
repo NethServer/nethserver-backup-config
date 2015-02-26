@@ -1,4 +1,7 @@
 #!/bin/bash
 
-# This event will reconfigure the entire system
+#
+# This event will reconfigure the entire system because
+# it invokes system-adjust the end:
+#
 /sbin/e-smith/signal-event hostname-modify

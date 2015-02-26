@@ -39,14 +39,8 @@ class Restore extends \Nethgui\Controller\AbstractController
 
     public function process()
     {
-        if ( ! $this->getRequest()->isMutation()) {
-            return;
-        } else {
-            $args = array();
-            if ($this->getRequest()->getParameter('SameHardware')) {
-               $args[] = "--same-hardware";
-            }
-            $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/restore-config ${@}',$args,TRUE);
+        if ($this->getRequest()->isMutation()) {
+            $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/restore-config ${@}', array(), TRUE);
         }
     }
 
@@ -74,9 +68,6 @@ class Restore extends \Nethgui\Controller\AbstractController
             $view['date'] = '-';
         }
 
-        if (!isset($this->parameters['SameHardware'])) {
-            $view['SameHardware'] = '0';
-        }
         $view['ForceBackup'] = $view->getModuleUrl('/BackupConfig/ForceBackup'); 
     }
 

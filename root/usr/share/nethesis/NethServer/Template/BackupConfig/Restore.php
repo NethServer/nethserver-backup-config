@@ -29,11 +29,6 @@ echo "<dt>".$T('date_label')."</dt><dd>".$view->textLabel('date')."</dd>";
 echo "<dt>".$T('size_label')."</dt><dd>".$view->textLabel('size')."</dd>"; 
 echo "</dl>";
 
-echo $view->panel()
-    ->insert($view->textLabel('SameHardware')->setAttribute('template', $T('SameHardware_label')))
-    ->insert($view->radioButton('SameHardware', '1'))
-    ->insert($view->radioButton('SameHardware', '0'));
-
 echo $view->buttonList()
     ->insert($view->button('Restore', $view::BUTTON_SUBMIT))
     ->insert($view->button('Help', $view::BUTTON_HELP))
