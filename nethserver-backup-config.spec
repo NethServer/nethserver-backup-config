@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 1.3.1
+Version: 1.4.0
 Release: 1%{?dist}
 License: GPL
 Group: System
@@ -54,6 +54,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 
 %changelog
+* Tue Mar 03 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.0-1
+- Restore from backup, disaster recovery and network interfaces - Feature #3041 [NethServer]
+- nethserver-devbox replacements - Feature #3009 [NethServer]
+
 * Wed Jan 14 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.1-1.ns6
 - Configuration backup: missing inline help - Bug #2982 [NethServer]
 
