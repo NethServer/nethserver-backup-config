@@ -452,7 +452,7 @@ sub is_running {
 
     while (my $pid = readdir ($proc_dir))
     {
-        if ($pid =~ m/[0-9]+/ && $pid != $$) # search for integer pid except for the current one
+        if ($pid =~ m/^[0-9]+$/ && $pid != $$) # search for integer pid except for the current one
         {
             open(FILE, "/proc/$pid/comm") or next;
             my $command_name = <FILE>;
