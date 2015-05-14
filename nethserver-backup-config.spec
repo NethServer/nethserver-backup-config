@@ -3,14 +3,13 @@ Name: nethserver-backup-config
 Version: 1.3.1
 Release: 1%{?dist}
 License: GPL
-Group: System
 Source: %{name}-%{version}.tar.gz
+URL: %{url_prefix}/%{name}
+
 BuildArch: noarch
-BuildRequires: nethserver-devtools, gettext
+BuildRequires: nethserver-devtools
 Requires: tar
 Requires: nethserver-base
-AutoReq: no
-
 
 %description
 NethServer fast backup of config files
@@ -23,35 +22,27 @@ NethServer fast backup of config files
 perl createlinks
 
 # create events
-mkdir -p root/etc/e-smith/events/post-backup-config
-mkdir -p root/etc/e-smith/events/pre-backup-config
-mkdir -p root/etc/e-smith/events/pre-restore-config
-mkdir -p root/etc/e-smith/events/post-restore-config
+mkdir -p root/%{_nseventsdir}/post-backup-config
+mkdir -p root/%{_nseventsdir}/pre-backup-config
+mkdir -p root/%{_nseventsdir}/pre-restore-config
+mkdir -p root/%{_nseventsdir}/post-restore-config
 
 # relocate perl modules under default perl vendorlib directory:
 mkdir -p root%{perl_vendorlib}
 mv -v NethServer root%{perl_vendorlib}
 
-for f in `/bin/ls root/usr/share/locale/*/LC_MESSAGES/nethserver-backup.po`; do
-   out=`dirname $f`
-   /usr/bin/msgfmt $f -o $out/nethserver-backup.mo
-   rm -f $f
-done
-
 %install
-rm -rf $RPM_BUILD_ROOT
-(cd root ; find . -depth -print | cpio -dump $RPM_BUILD_ROOT)
-rm -f %{name}-%{version}-%{release}-filelist
-/sbin/e-smith/genfilelist $RPM_BUILD_ROOT > %{name}-%{version}-%{release}-filelist
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
+rm -rf %{buildroot}
+(cd root ; find . -depth -print | cpio -dump %{buildroot})
+%{genfilelist} %{buildroot} > %{name}-%{version}-%{release}-filelist
 
 %files -f %{name}-%{version}-%{release}-filelist 
+%defattr(-,root,root)
 %config /etc/backup-config.d/custom.include
 %config /etc/backup-config.d/custom.exclude
-%defattr(-,root,root)
+%doc COPYING
+%dir %{_nseventsdir}/%{name}-update
+
 
 %changelog
 * Wed Jan 14 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.1-1.ns6
