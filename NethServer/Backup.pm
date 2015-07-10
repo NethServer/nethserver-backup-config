@@ -216,7 +216,7 @@ sub _send_notification
     open(MAIL, "|/usr/sbin/sendmail -t");
     print MAIL "To: ".$self->{_notify_to}."\n";
     print MAIL "From: Backup <admin@".$host.">\n";
-    print MAIL "Subject: ".gettext('Backup report').$status."\n\n";
+    print MAIL "Subject: ".gettext('Backup report') . " [$host]" .$status."\n\n";
     print MAIL $content;
     close(MAIL);
 
