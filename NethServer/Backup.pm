@@ -55,9 +55,11 @@ sub new
     my $class = shift;
     my $notify = shift || 'never';
     my $notify_to = shift || '';
+    my $notify_from = shift || 'root';
     my $self = {
         _notify => $notify,
         _notify_to => $notify_to,
+        _notify_from => $notify_from,
     };
     $self = bless $self, $class;
 
@@ -213,10 +215,11 @@ sub _send_notification
     }
 
     my $host = hostname;
-    open(MAIL, "|/usr/sbin/sendmail -t");
+    my $sender = $self->{_notify_from};
+    open(MAIL, "|/usr/sbin/sendmail -t -f $sender");
     print MAIL "To: ".$self->{_notify_to}."\n";
-    print MAIL "From: Backup <admin@".$host.">\n";
-    print MAIL "Subject: ".gettext('Backup report').$status."\n\n";
+    print MAIL "From: $sender\n";
+    print MAIL "Subject: ".gettext('Backup report') . " [$host]" .$status."\n\n";
     print MAIL $content;
     close(MAIL);
 
