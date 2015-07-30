@@ -1,0 +1,11 @@
+#!/bin/bash
+
+reinstall=$(/sbin/e-smith/config getprop backup-config reinstall)
+if [ "$reinstall" != "enabled" ]; then
+    exit 0
+fi 
+
+if [ -f /var/lib/nethserver/backup/package-list ]; then
+    packages=$(sed ':a;N;$!ba;s/\n/ /g' /var/lib/nethserver/backup/package-list);
+    yum install -y $packages
+fi
