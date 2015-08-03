@@ -27,10 +27,12 @@ use NethServer::Backup;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
+my $filedate=strftime("_%y%M%d_%H%M%S", localtime($stat->mtime));
+
 use constant LOG_FILE => "/var/log/backup-config.log";
 use constant NOTIFICATION_FILE => "/tmp/backup-config-notification";
 use constant CONF_DIR => "/etc/backup-config.d/";
-use constant DESTINATION => "/var/lib/nethserver/backup/backup-config.tar.xz";
+use constant DESTINATION => "/var/lib/nethserver/backup/backup-config".$filedate.".tar.xz";
 
 
 @ISA = qw(NethServer::Backup);
