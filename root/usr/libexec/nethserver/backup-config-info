@@ -7,15 +7,17 @@ use JSON;
 
 my %backup=get_backup_files();
 
+
 sub get_backup_files{
 
 	# define the backup folder
 	my $bkp_dir = NethServer::BackupConfig::DESTINATION_DIR;
 
 	#open the backups folder for processing
-	opendir my $dh, $bkp_dir or die "Error opening '$bkp_dir': '$!'\n";
+	opendir (DIR, $bkp_dir) or die "Error opening '$bkp_dir': '$!'\n";
 	
-	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir $dh;
+	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir (DIR);
+	my $i=0;
 	
 	#check that the filename array contains something (at least 1 file found)
 	if (! @bkp_files) {
@@ -29,11 +31,15 @@ sub get_backup_files{
 								my @bkp_files_sorted= reverse sort @bkp_files; 
 								
 								foreach $file_info (@bkp_files_sorted) {
+									
+									
 									my @stats = stat(NethServer::BackupConfig::DESTINATION_DIR.$file_info);
-									$backup{'path'} = NethServer::BackupConfig::DESTINATION_DIR.$file_info; 
-									$backup{'name'} = $file_info; 
-									$backup{'date'} = $stats[9]; 
-									$backup{'size'} = $stats[7]; 
+									$backup{$i}{'path'} = NethServer::BackupConfig::DESTINATION_DIR.$file_info; 
+									$backup{$i}{'name'} = $file; 
+									$backup{$i}{'date'} = $stats[9];
+									$backup{$i}{'size'} = $stats[7]; 
+	 
+									$i++;
 									};
 								
 								# and we return the file with the latest date in filename
