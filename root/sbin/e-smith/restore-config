@@ -24,6 +24,9 @@ use esmith::ConfigDB;
 use NethServer::BackupConfig;
 use NethServer::TrackerClient;
 
+
+my $bkp_file=$1;
+
 my $status;
 
 my $backup = new NethServer::BackupConfig();
@@ -40,13 +43,13 @@ $backup->set_log_file("/var/log/restore-config.log");
 
 $backup->logger("START","Restore config started");
 
-if ( ! -f NethServer::BackupConfig::DESTINATION ) {
+if ( ! -f NethServer::BackupConfig::DESTINATION_DIR.$bkp_file ) {
     $ENV{'PTRACK_TASKID'} = $tasks{'extract'};
     $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Extract');
     my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
     my $bd = $conf->get('backup-data');
     my $program = $bd->prop('Program') || 'duplicity';
-    if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".NethServer::BackupConfig::DESTINATION)) {
+    if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".NethServer::BackupConfig::DESTINATION_DIR.$bkp_file)) {
         $tracker->set_task_done($tasks{'extract'}, "No configuration backup file found or can't extract from data backup", 1);
         $backup->bad_exit("No configuration backup file found or can't extract from data backup");
     }
