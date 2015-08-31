@@ -57,6 +57,7 @@ class Backup extends \Nethgui\Controller\AbstractController
         if (isset($this->backup['size'])) {
             $view['size'] = round($this->backup['size'] / 1024,2).' KB';
             $view['date'] = date("o-m-d G:i", $this->backup['date']);
+            $view['backup_table'] = $this->backup;
         } else {
             $view['size'] = '-';
             $view['date'] = '-';

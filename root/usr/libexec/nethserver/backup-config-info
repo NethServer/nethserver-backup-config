@@ -19,6 +19,27 @@ sub get_backup_files{
 	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir (DIR);
 	my $i=0;
 	
+	my $backup_head="
+columns: [{
+        field: 'id',
+        title: 'ID'
+    }, {
+        field: 'path',
+        title: 'File Path'
+    },{
+        field: 'name',
+        title: 'File Name'
+    }, {
+        field: 'date',
+        title: 'Backup Date'
+    }, {
+        field: 'size',
+        title: 'File Size'
+    }],
+    data: [
+";
+my $backup_end=" ]";	
+	
 	#check that the filename array contains something (at least 1 file found)
 	if (! @bkp_files) {
 						
@@ -43,7 +64,7 @@ sub get_backup_files{
 									};
 								
 								# and we return the file with the latest date in filename
-								return $backup;
+								return $backup_head.$backup.$backup_end;
 								};
 }
 
