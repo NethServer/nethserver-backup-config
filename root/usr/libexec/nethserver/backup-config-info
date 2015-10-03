@@ -4,6 +4,7 @@ use strict;
 use NethServer::BackupConfig;
 use esmith::ConfigDB;
 use JSON;
+use vars qw($backup );
 
 my %backup=get_backup_files();
 
@@ -19,26 +20,7 @@ sub get_backup_files{
 	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir (DIR);
 	my $i=0;
 	
-	my $backup_head="
-columns: [{
-        field: 'id',
-        title: 'ID'
-    }, {
-        field: 'path',
-        title: 'File Path'
-    },{
-        field: 'name',
-        title: 'File Name'
-    }, {
-        field: 'date',
-        title: 'Backup Date'
-    }, {
-        field: 'size',
-        title: 'File Size'
-    }],
-    data: [
-";
-my $backup_end=" ]";	
+
 	
 	#check that the filename array contains something (at least 1 file found)
 	if (! @bkp_files) {
@@ -51,21 +33,24 @@ my $backup_end=" ]";
 								# if we have something in the bkp_files array we do a sort
 								my @bkp_files_sorted= reverse sort @bkp_files; 
 								
-								foreach $file_info (@bkp_files_sorted) {
+								
+								foreach my $file_info (@bkp_files_sorted) {
 									
 									
 									my @stats = stat(NethServer::BackupConfig::DESTINATION_DIR.$file_info);
-									$backup{$i}{'path'} = NethServer::BackupConfig::DESTINATION_DIR.$file_info; 
-									$backup{$i}{'name'} = $file; 
-									$backup{$i}{'date'} = $stats[9];
-									$backup{$i}{'size'} = $stats[7]; 
+									 $backup{$i}{'path'} = NethServer::BackupConfig::DESTINATION_DIR.$file_info; 
+									 $backup{$i}{'name'} = $file_info; 
+									 $backup{$i}{'date'} = $stats[9];
+									 $backup{$i}{'size'} = $stats[7]; 
 	 
 									$i++;
 									};
 								
 								# and we return the file with the latest date in filename
-								return $backup_head.$backup.$backup_end;
+								
 								};
+# return $backup_head. %backup. $backup_end;		
+return %backup;						
 }
 
 

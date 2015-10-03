@@ -27,6 +27,7 @@ echo "<div>".$T('current_backup_label').":</div>";
 echo "<dl class='rlc_module'>";
 echo "<dt>".$T('date_label')."</dt><dd>".$view->textLabel('date')."</dd>"; 
 echo "<dt>".$T('size_label')."</dt><dd>".$view->textLabel('size')."</dd>"; 
+
 echo "</dl>";
 
 echo $view->buttonList()

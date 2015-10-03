@@ -48,7 +48,7 @@ sub filter_excludes {
 sub do_backup {
    my ( $backup, $include, $exclude) = @_;
    if ( $backup->backup_config($include, $exclude) == 0) {
-       chmod(0640,NethServer::BackupConfig::DESTINATION);
+       chmod(0644,NethServer::BackupConfig::DESTINATION);
        system("/usr/libexec/nethserver/backup-config-md5 ".NethServer::BackupConfig::DESTINATION);
    } else {
        $backup->logger('ERROR',"Can't create tar file.");
