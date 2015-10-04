@@ -2,7 +2,7 @@
 $view->useFile('js/js_fct.js');
 
 
-function format_bytes($size) {
+function format_bytes($size){
 	$units = array(' B', ' KiB', ' MiB', ' GiB', ' TiB');
 	for ($i = 0; $size >= 1024 && $i < 4; $i++)
 		$size /= 1024;
@@ -10,7 +10,7 @@ function format_bytes($size) {
 }
 
 
-function menu_backup() {
+function menu_backup(){
     
     $html = '        
         <div id="ui-table-contain" class="ui-widget">
@@ -24,7 +24,7 @@ function menu_backup() {
                     <td style="width: 81px;">Restore</td>
                 </tr></thead><tbody>';
 
-   // $files = scandir('backup', 1);
+   
     $files = glob('backup/*.{xz}', GLOB_BRACE);
     foreach ($files as $value) {
         if (($value != ".") && ($value != "..") && ($value != ".htaccess") && (!is_dir('backup/'.$value))) {
@@ -33,18 +33,17 @@ function menu_backup() {
                 <tr id="' . $value . '">
                     <td>' . $value . '</td>
                     <td>' . format_bytes(filesize('backup/' . $value)) . '</td>
-                    <td ><span class="link_img delete" ><img src="/images/trash.png" align="absmiddle" border="0"/> Delete</span></td>
-                    <td ><span class="link_img download"><img src="/images/download.png" align="absmiddle" border="0"/> Download</span></td>
-                    <td ><span class="link_img restore"><img src="/images/restore.png" align="absmiddle" border="0"/> Restore</span></td>
+                    <td ><span class="link_img delete" > Delete </span></td>
+                    <td ><span class="link_img download"> Download </span></td>
+                    <td ><span class="link_img restore"> Restore </span></td>
                 </tr>';
         }
     }
     $html .= '
-    </tbody></table></div>
-    '; /*removed snipped*/ 
+    </tbody></table></div>'; 
     return $html;
     
-// removed '<script type="text/javascript" src="js/admin.js"></script>'    
+   
     
 };
 
@@ -82,48 +81,15 @@ $view->includeCSS("
 }
   
 
-/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
+
   
   
 ");
 
-// DEBUG // 
-$file_1name='backup-config_2015-09-20_13-46-13.tar.xz';
-$result=exec('sudo rm -f /var/lib/nethserver/backup/'.$file_1name.'');
-echo $result;
 
-function get_file_extension($file_name) {
-	return substr(strrchr($file_name,'.'),1);
-}
-
-
-echo "</br>-----------------------------------------------</br>";
-echo $moduleUrl = $view->getModuleUrl();
-echo "</br>";
-echo $moduleUrl1 = json_encode($view->getModuleUrl());
-echo "</br>";
-echo basename(__DIR__) ;
-echo "</br>";
-
-echo "</br>-----------------------------------------------</br>";
-
-
- $filess = scandir("backup/", 1);
-    foreach ($filess as $values) {
-				
-		if (get_file_extension($values) == 'xz' ) {
-		echo $values."</br>";
-		};
-		
-	};
-
-echo "</br>-----------------------------------------------</br>";
-
-// END DEBUG //
 
 $view->includeJavascript("
-(function ( $ ) {
-  
+(function($){
   
   
   $(document).ready(function() {
