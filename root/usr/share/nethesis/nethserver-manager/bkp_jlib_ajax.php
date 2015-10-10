@@ -53,11 +53,11 @@ function format_bytes($size) {
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
 
-function menu_backup() {
+function table_backup() {
     
     $html = '        
         <div id="ui-table-contain" class="ui-widget">
-            <table id="dbtable" class="ui-widget ui-widget-content">
+            <table id="bkptable" class="ui-widget ui-widget-content">
             <thead>
                 <tr class="ui-widget-header">
                     <td>File Name</td>
@@ -67,7 +67,7 @@ function menu_backup() {
                     <td style="width: 81px;">Restore</td>
                 </tr></thead><tbody>';
 
-   // $files = scandir('backup', 1);
+
     $files = glob('backup/*.{xz}', GLOB_BRACE);
     foreach ($files as $value) {
         if (($value != ".") && ($value != "..") && ($value != ".htaccess") && (!is_dir('backup/'.$value))) {
@@ -76,77 +76,98 @@ function menu_backup() {
                 <tr id="' . $value . '">
                     <td>' . $value . '</td>
                     <td>' . format_bytes(filesize('backup/' . $value)) . '</td>
-                    <td ><span class="link_img delete" ><img src="/images/trash.png" align="absmiddle" border="0"/> Delete</span></td>
-                    <td ><span class="link_img download"><img src="/images/download.png" align="absmiddle" border="0"/> Download</span></td>
-                    <td ><span class="link_img restore"><img src="/images/restore.png" align="absmiddle" border="0"/> Restore</span></td>
+                    <td ><span class="bkp_delete" > Delete </span></td>
+                    <td ><span class="bkp_download" > Download </span></td>
+                    <td ><span class="bkp_restore" > Restore </span></td>
                 </tr>';
         }
     }
     $html .= '
     </tbody></table></div>
-    '; /*removed snipped*/ 
+    '; 
     return $html;
-      
+    flush();
+	ob_flush();
+
     
 };
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
-function get_file_extension($file_name){
+function get_file_extension($file_name) {
 	return substr(strrchr($file_name,'.'),1);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
-function delete_backup($file_name){
-	$out=array();
-	$err="";
-	if (isset($file_name) and !empty($file_name) and (get_file_extension($file_name) == "xz")) 
+function delete_backup($file_name) {
+		$out=array();
+		$err=array();
+	
+	if (isset($file_name) && !empty($file_name) && (get_file_extension($file_name) == "xz")) 
 			{
-				unset($out);
-				unset($err);
-				$result=exec("/usr/bin/sudo rm -f /var/lib/nethserver/backup/".$file_name,$out,$err);
-				if (!$err) {
+				
+				
+				$command = '/usr/bin/sudo /sbin/e-smith/delete-config '.$file_name;
+				$result=exec($command, $out, $err);
+				
+				if ($err == 0) {
 								return ("Deleted backup ". $file_name);
-													} else {
-															return "Error on delete: ". $file_name." Output: ".var_dump($out)." Error: ".var_dump($err);
-															};
+								} else {
+										
+										
+										return "</br> Error removing: ". $file_name." </br> Output: <pre>".print_r($out)."</pre> </br> Error: <pre>".print_r($err)."</pre>";
+										};
 				} else {
 						return "Error, file is not valid for removal";
 						};
-			
+		
+
+				
+		 
+		
+	
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 function get_backup($backup_file) {
 	
-if (!$backup_file) {
-					echo "File error!";
-					} else {
-							$path = "backup/";
-							// change the path to fit your websites document structure
-							$fullPath = $path . $backup_file;
-							if ($fd = fopen($fullPath, "rb")) {
-																header("Pragma: public");
-																header("Expires: -1");
-																header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-																header("Cache-Control: private", false);
-																header("Content-Type: application/zip");
-																header("Content-Disposition: attachment; filename=" . basename($fullPath));
-																header("Content-Transfer-Encoding: binary");
-																header("Content-Length: " . filesize($fullPath));
-																ob_clean();
-																flush();
-																echo readfile("$fullPath");
-																};
+	if (!$backup_file) {
+		 echo "File error!";
+	} else {
+		
+		$path = "backup/";
+		// change the path to fit your websites document structure
+		$fullPath = $path . $backup_file;
+		if ($fd = fopen($fullPath, "rb")) {
+			header("Pragma: public");
+			header("Expires: -1");
+			header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+			header("Cache-Control: private", false);
+			header("Content-Type: application/zip");
+			header("Content-Disposition: attachment; filename=" . basename($fullPath));
+			header("Content-Transfer-Encoding: binary");
+			header("Content-Length: " . filesize($fullPath));
+			ob_clean();
+			flush();
+			echo readfile("$fullPath");
+		};
 		fclose($fd);
 		exit;
 	};
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 function restore_backup($backup_file) {
+		$out=array();
+		$err=array();
+		
+	if ((isset($backup_file)) && (!empty($backup_file)) && (get_file_extension($backup_file) == "xz")) {
+		
+		$command='/usr/bin/sudo /sbin/e-smith/restore-config '.$backup_file;
+		$rezult = exec($command, $out, $err);
+		
+	};
+if (empty($err)) {return "</br>Restoration of: ".$backup_file." Done!" ; } else {return "</br>Restore: ".$backup_file."</br> Out: <pre>".print_r($out)."</pre></br> Error: <pre>".print_r($err)."</pre></br>";};
 	
-	if ((isset($backup_file)) && (!empty($backup_file))) {
-		exec("/usr/bin/sudo /sbin/e-smith/restore-config ".$backup_file, array(), TRUE);
-		};
+	
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
@@ -165,7 +186,7 @@ function get_parameters() {
 		}
 		elseif (isset($_POST['p'.$i])) {
 			$p[$i]=sanitize($_POST['p'.$i]); 
-			}
+		}
 	}
 	if (isset($_GET['json'])) {
 		$json=json_decode($_GET["json"], true);
@@ -182,7 +203,7 @@ if ((isset($_GET['act']))&&(!empty($_GET['act']))) {
 	$act=sanitize($_POST['act']);
 	get_parameters();
 } else {
-		die();
+	die();
 		};
 
 
@@ -193,12 +214,15 @@ if ((isset($_GET['act']))&&(!empty($_GET['act']))) {
 if ($act !="") {
 	switch ($act) {
 		
-		case "menu_backup":
-			echo menu_backup();
+		case "bkp_table":
+			echo table_backup();
 			break;
+		
+		
 		case "backup_table":
 			echo backup_table($p[1]);
 			break; 
+		
 		case "delete_backup":
 			echo delete_backup($p[1]);
 			break;
@@ -208,11 +232,12 @@ if ($act !="") {
 		case "restore_backup":
 			echo restore_backup($p[1]);
 			break;
+		
 		case "upd_table":
 			echo upd_template($json);
 			break;
 	}; // end switch
 } else {
-	exit();
+	die();
 };
 
