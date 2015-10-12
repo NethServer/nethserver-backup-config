@@ -13,6 +13,7 @@ $view->includeCSS("
 .link_img, .bkp_delete, .bkp_download, .bkp_restore {
 	opacity: 0.6;
     padding: 6px;
+    cursor: pointer;
     
 }
 
@@ -22,6 +23,21 @@ $view->includeCSS("
 		
 }
 
+/*  table rows highlight */
+
+tbody tr {
+    border: 1px dotted #222529;
+    vertical-align: middle;
+    padding: 2px;
+    height: 22px;
+}
+
+tr:hover td {
+  background-color: #daecf5; 
+  color: #000;
+}
+
+
 /**
  * Twitter Bootstrap style.
  *
@@ -29,15 +45,16 @@ $view->includeCSS("
  * Does not work with IE 7.
  */
 
-.qtip-bootstrap-alert{
-	/** Taken from Bootstrap body */
-	font-size: 14px;
+.qtip-alert {
+
+	font-size: 12px;
 	line-height: 20px;
 	color: #333333;
-    min-width: 200px;
-	/** Taken from Bootstrap .popover */
+	width: 350px;
+    min-width: 350px;
+
 	padding: 1px;
-	background-color: #ffffff;
+	background-color: #ffffff  !important;
 	border: 1px solid #ccc;
 	border: 1px solid rgba(0, 0, 0, 0.2);
 	-webkit-border-radius: 6px;
@@ -51,22 +68,22 @@ $view->includeCSS("
 	background-clip: padding-box;
 }
 
-	.qtip-bootstrap-alert !important .qtip-titlebar{
-		/** Taken from Bootstrap .popover-title */
-		padding: 8px 14px;
-		margin: 0;
-		font-size: 14px;
-		color: #ffffff;
-        font-weight: bold;
-		line-height: 18px;
-		background-color: #cc0000;
-		border-bottom: 1px solid #ebebeb;
-		-webkit-border-radius: 5px 5px 0 0;
-		-moz-border-radius: 5px 5px 0 0;
-		border-radius: 5px 5px 0 0;
+.qtip-alert .qtip-titlebar .qtip-alert-titlebar{
+
+		/* padding: 8px 14px; */
+		margin: 0 !important;
+		font-size: 14px !important;
+		color: #ffffff !important;
+        font-weight: bold !important;
+		line-height: 18px !important;
+		background-color: #cc0000 !important;
+		border-bottom: 1px solid #ebebeb !important;
+		-webkit-border-radius: 5px 5px 0 0 !important;
+		-moz-border-radius: 5px 5px 0 0 !important;
+		border-radius: 5px 5px 0 0 !important;
 	}
 
-		.qtip-bootstrap-alert .qtip-titlebar .qtip-close{
+.qtip-alert .qtip-close{
 			border: 1px solid #e3a1a1;
             background: #cc0000;
             color: #ffffff;
@@ -76,43 +93,41 @@ $view->includeCSS("
 			border-style: none;
 		}
 
-	.qtip-bootstrap-alert .qtip-content{
-		
+.qtip-alert .qtip-content .qtip-alert-content{
+		font-size: 12px;
         display: inline-block;
-		padding: 15px auto;
+		padding: 1px auto;
         margin: auto auto;
         float:none;
-        
-        
+        font-size: 12px;
 	}
 
-.qtip-content p{
-    padding:20;
+
+.qtip-alert .qtip-content p{
+    padding:1;
+    font-size: 12px;
     text-align: center;
     margin: auto, auto;
     display: block;
     
 }
 
-.qtip-content input[type=button]{
+
+
+.qtip-alert .qtip-content input[type=button]{
     
     text-align: center;
     margin: auto, auto;
     display: inline-block;
+    padding:1px;
     
 }
 
-	.qtip-bootstrap-alert .qtip-icon{
-		
-		
-	}
 
-	.qtip-bootstrap-alert .qtip-icon .ui-icon{
+.qtip-alert .qtip-icon {
 		
 			width: auto;
 			height: auto;
-
-			/* Taken from Bootstrap .close */
 			float: right;
 			font-size: 20px;
 			font-weight: bold;
@@ -123,8 +138,7 @@ $view->includeCSS("
 			filter: alpha(opacity=60);
 		}
 
-		.qtip-bootstrap-alert .qtip-icon .ui-icon:hover{
-			/* Taken from Bootstrap .close:hover */
+.qtip-alert .qtip-icon:hover{
 			color: #FFFFFF;
 			text-decoration: none;
 			cursor: pointer;
@@ -132,14 +146,6 @@ $view->includeCSS("
 			filter: alpha(opacity=100);
 		}
 
-
-
-/* IE9 fix - removes all filters */
-.qtip:not(.ie9haxors) div.qtip-content,
-.qtip:not(.ie9haxors) div.qtip-titlebar{
-	filter: none;
-	-ms-filter: none;
-}
 
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
@@ -259,14 +265,17 @@ function dialogue(content, title) {
         },
         hide: false,
         style:{ 
-                classes: 'qtip-bootstrap-alert',
+                classes: 'qtip-alert',
+		        def: false,
+                widget: false
                 
               },
        
         events: {
             render: function(event, api) {
-                $('button', api.elements.content).click(function() {
+				    $('button', api.elements.content).click(function() {
                 	api.hide();
+                	 
                 });
             },
             hide: function(event, api) { api.destroy(); }
@@ -333,3 +342,9 @@ $.ajax({ cache:false });
   });
 })(jQuery);
 ");
+
+
+
+
+
+

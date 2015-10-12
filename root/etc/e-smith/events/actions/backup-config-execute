@@ -22,7 +22,7 @@
 
 #
 # Execute configuration backup only if needed
-# Backup is saved in: /var/lib/nethserver/backup/backup-config.tar.xz
+# Backup is saved in: /var/lib/nethserver/backup/
 #
 
 use strict;
@@ -142,7 +142,10 @@ if ( ! -e NethServer::BackupConfig::DESTINATION_DIR.$backup_file ||
     ! -e $md5_content ||
     ! same_files($md5_content, \@include_files) ||
     system($cmd) != 0 ) {
-    do_backup ( $backup, \@include_files, \@exclude_files);
-}
+						do_backup ( $backup, \@include_files, \@exclude_files);
+    
+						# call backup-rotate
+						system("/sbin/e-smith/backup-config-rotate ");
+						}
 
 exit 0;
