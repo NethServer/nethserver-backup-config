@@ -5,8 +5,40 @@ use NethServer::BackupConfig;
 use esmith::ConfigDB;
 use vars qw();
 
+sub bkp_cfg_db_settings{
+	my $db = esmith::ConfigDB->open or die "Couldn't open ConfigDB\n";
+	my $config = $db->get("backup-config") or die "Backup-Config settings missing from ConfigDB\n";
+	my $record = $config->prop("keep_backups");
+    
+    # set default limit for number of files to have
+    my $value = 30 ; 
+    
+    if ($record)
+           {
+               $value = $record;
+               
+           } else {
+					
+					$config->set_prop("keep_backups", $value);
+					$value = $config->prop("keep_backups");
+					}
+	
+	
+	
+	
+	return $value;
+	
+	}
+
+
+
+
 sub rotate_backup_files{
 
+	my $keep = bkp_cfg_db_settings;
+	#if the value to keep the backups is 0 (keep all) then we exit
+	if ($keep == 0) {exit 0;};
+	
 	# define the backup folder
 	my $bkp_dir = NethServer::BackupConfig::DESTINATION_DIR;
 
@@ -24,12 +56,12 @@ sub rotate_backup_files{
 								# if we have something in the bkp_files array we do a sort so we will get the newest files first
 								my @bkp_files_sorted= reverse sort @bkp_files; 
 								
-								# we check that the array contains more than 15 elements
-								if (@bkp_files_sorted > 15 ){
-															 # if it is greater than 15 then put extra elements in a separate array
-															 my @slice = @bkp_files_sorted[14 .. $#bkp_files_sorted];
+								# we check that the array contains more than max defined in $keep elements
+								if (@bkp_files_sorted > $keep ){
+															 # if it is greater than $keep, put the extra elements in a separate array
+															 my @slice = @bkp_files_sorted[$keep .. $#bkp_files_sorted];
 															 
-															 # then delete elements from the array 15+
+															 # then delete elements from the array index $keep -> end of array
 															 foreach my $file_extra (@slice) {
 									
 															 # remove the backup file and the md5 files
@@ -43,9 +75,9 @@ sub rotate_backup_files{
 																		
 																													};
 																} else {
-																		# the array contains under 15 elements so no rotation needed; exit
+																		# the array contains less than $keep elements, so no rotation needed; exit
 																		exit 0;
-																		};	# end else if more than 15 files found in array
+																		};	# end else if more than max defined in $keep files found in array
 								
 								
 								
@@ -56,6 +88,7 @@ sub rotate_backup_files{
 }
 
 
-rotate_backup_files();
+rotate_backup_files;
+
 
 exit(0);

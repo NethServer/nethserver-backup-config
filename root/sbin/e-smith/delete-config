@@ -38,7 +38,7 @@ if (not defined $bkp_file) { print "No backup file specified"; die; };
 
 if ( ! -f NethServer::BackupConfig::DESTINATION_DIR.$bkp_file ) {
 
-        print "No configuration backup file found or can't extract from data backup";
+        print "Backup file not found or can't delete backup ".$bkp_file;
         die;
         
     } else {

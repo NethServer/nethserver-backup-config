@@ -200,12 +200,13 @@ function table_backup() {
 
 echo $view->header()->setAttribute('template', $T('backup_config_Header'));
 echo "<div>".$T('current_backup_label').":</div>";
+echo "<div id=\"keep_holder\" >How many backups to keep: <input type=\"text\" id=\"keep_value\" type=\"number\" size=\"5\" style='width:5em' ></div>";
 
-echo "<div id=\"table_holder\">".table_backup()."</div>";
+echo "<div id=\"table_holder\" >".table_backup()."</div>";
 echo "<dl class='rlc_module'>";
 echo "</dl>";
 
-echo "<div id='bc_module_warning' class='ui-state-highlight'><span class='ui-icon ui-icon-info'></span>".$T('backup_config_label')."</div>";
+echo "<div id='bc_module_warning' class='ui-state-highlight'> <span class='ui-icon ui-icon-info'></span>".$T('backup_config_label')."</div>";
 echo $view->buttonList()
     ->insert($view->button('Execute', $view::BUTTON_SUBMIT))
     ->insert($view->button('Help', $view::BUTTON_HELP))
@@ -214,7 +215,7 @@ echo $view->buttonList()
 
 // DEBUG // 
 
-echo '<div id="debug_div" style="background-color:#CCCC99"></div>';
+echo '<div id="extra_module_warning" class="ui-state-highlight"><span class="ui-icon ui-icon-info"> </span><span id="debug_div" ></span></div>';
 // END DEBUG //
 
 $view->includeJavascript("
@@ -240,10 +241,6 @@ function confirm_prompt(question, callback) {
 }
 
 
-
-
-
-
 // qTip2 DIALOG
 function dialogue(content, title) {
     $('<div />').qtip({
@@ -267,7 +264,9 @@ function dialogue(content, title) {
         style:{ 
                 classes: 'qtip-alert',
 		        def: false,
-                widget: false
+                widget: false,
+                width: 350
+                
                 
               },
        
@@ -275,7 +274,7 @@ function dialogue(content, title) {
             render: function(event, api) {
 				    $('button', api.elements.content).click(function() {
                 	api.hide();
-                	 
+                	api.destroy(); 
                 });
             },
             hide: function(event, api) { api.destroy(); }
@@ -291,16 +290,54 @@ function update_table(){
  $.post( \"/bkp_jlib_ajax.php\", {act:'bkp_table'}, function(data) { $(\"#table_holder\").empty().html(data); });
  }; 
 
+function keep_value(){
+$.post( '/bkp_jlib_ajax.php', {act:'keep_value'}, function(keep_data) { $('#keep_value').val(keep_data);});
+}
+
+function set_keep_value(set_value){
+$.post( '/bkp_jlib_ajax.php', {act:'set_keep_value', p1:set_value}, function() { $('#keep_value').val(set_value); $('#debug_div').empty().html('<p>Updated number of backups to keep: '+set_value+'</p>');});
+}
+
+
 
 $(document).ready(function() {
 
 $.ajax({ cache:false });
 	
-	// watch for backup now button press and refresh backup table
+// watch for backup now button press and refresh backup table
+$('input[type=submit]').on('click', function() { update_table();  });
 	
-	$('.Buttonlist').on('click', '.submit', function() { update_table();  });
+keep_value(); // gets the curent value set in DB
+
+//prevent entering leters or symbols
+$('#keep_value').on('keypress keyup blur',function (event){    
+           $(this).val().replace(/[^\d].+/, \"\");
+            if ((event.which < 48 || event.which > 57)) {
+                event.preventDefault();
+            }
+        });
+            
+$('#keep_value').change(function(){
+		bkp_value = $('#keep_value').val();
+		 
+		if (bkp_value < 0) {
+						set_keep_value('0');
+						$('#keep_value').val(0);
+						} else {
+						
+						if (bkp_value > 300 ) {
+										$('#keep_value').val(300);
+										set_keep_value('300');
+										} else { 
+												set_keep_value(bkp_value); 
+												};
+						};       
+    });
+
+
+
 	
-	$('#bkptable tbody tr ').on('click', '.bkp_delete',
+$('#bkptable tbody tr ').on('click', '.bkp_delete',
      function() 
 				{
 				var fname = $(this).parent().parent().attr('id');
@@ -319,7 +356,7 @@ $.ajax({ cache:false });
 	);
 
 	$('#bkptable tbody tr ').on('click', '.bkp_download',
-     function() 
+	 function() 
 				{
 				window.location='/bkp_jlib_ajax.php?act=get_backup&p1='+$(this).parent().parent().attr('id');
 				}

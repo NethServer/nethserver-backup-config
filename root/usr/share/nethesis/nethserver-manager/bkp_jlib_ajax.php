@@ -99,6 +99,33 @@ function get_file_extension($file_name) {
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
+
+function get_keep_value() {
+		$out=array();
+		$err=array();
+		
+		$command = "/usr/bin/sudo /sbin/e-smith/db configuration getprop backup-config keep_backups";
+		$result=exec($command, $out, $err);
+		if ($err == 0) {
+						return $result;
+								} else { return $err; };
+		
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------------------//
+
+function set_keep_value($bkp_value) {
+		$out=array();
+		$err=array();
+		
+		$command = "/usr/bin/sudo /sbin/e-smith/db configuration setprop backup-config keep_backups ".$bkp_value;
+		$result=exec($command, $out, $err);
+		if ($err == 0) {
+						return $result;
+								} else { return $err; };
+		
+}
+//-------------------------------------------------------------------------------------------------------------------------------------------//
 function delete_backup($file_name) {
 		$out=array();
 		$err=array();
@@ -115,7 +142,7 @@ function delete_backup($file_name) {
 								} else {
 										
 										
-										return "</br> Error removing: ". $file_name." </br> Output: <pre>".print_r($out)."</pre> </br> Error: <pre>".print_r($err)."</pre>";
+										return "</br> Error removing: ". $file_name." </br> Output: <pre>".print_r ($out)."</pre> </br> Error: <pre>".$err."</pre>";
 										};
 				} else {
 						return "Error, file is not valid for removal";
@@ -165,7 +192,7 @@ function restore_backup($backup_file) {
 		$rezult = exec($command, $out, $err);
 		
 	};
-if (empty($err)) {return "</br>Restoration of: ".$backup_file." Done!" ; } else {return "</br>Restore: ".$backup_file."</br> Out: <pre>".print_r($out)."</pre></br> Error: <pre>".print_r($err)."</pre></br>";};
+if ($err==0) {return "</br>Restoration of: ".$backup_file." Done!" ; } else {return "</br>Restore: ".$backup_file."</br> Out: <pre>".print_r($out)."</pre></br> Error: <pre>".print_r($err)."</pre></br>";};
 	
 	
 };
@@ -218,9 +245,12 @@ if ($act !="") {
 			echo table_backup();
 			break;
 		
+		case "keep_value":
+			echo get_keep_value();
+			break; 
 		
-		case "backup_table":
-			echo backup_table($p[1]);
+		case "set_keep_value":
+			echo set_keep_value($p[1]);
 			break; 
 		
 		case "delete_backup":
