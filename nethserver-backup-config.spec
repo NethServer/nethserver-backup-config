@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 1.4.0
+Version: 1.4.2
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -45,6 +45,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 06 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.2-1
+- Configuration backup: support restore of installed RPM - Enhancement #3235 [NethServer]
+
+* Wed Jul 15 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.1-1
+- Backup notification: add sender field - Enhancement #3219 [NethServer]
+- Add hostname and domain in subject of backup result email - Enhancement #3117 [NethServer]
+
 * Tue Mar 03 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.0-1
 - Restore from backup, disaster recovery and network interfaces - Feature #3041 [NethServer]
 - nethserver-devbox replacements - Feature #3009 [NethServer]
