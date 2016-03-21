@@ -17,3 +17,5 @@ for i in `/bin/tar -tJf $archive`;  do
 done
 
 /usr/bin/md5sum $archive > $archive_md5
+
+exit(0);

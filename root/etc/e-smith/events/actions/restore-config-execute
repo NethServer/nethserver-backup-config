@@ -24,7 +24,7 @@ use strict;
 use NethServer::BackupConfig;
 
 my $bkp_file=$ARGV[0];
-if (not defined $bkp_file) { print "No backup file specified"; exit 0; }; 
+if (not defined $bkp_file) { print "No backup file specified! \n"; exit 0; }; 
 
 my $backup = new NethServer::BackupConfig();
 $backup->set_log_file("/var/log/restore-config.log");
@@ -33,7 +33,7 @@ my $ret = system("tar -C / -xf ".NethServer::BackupConfig::DESTINATION_DIR.$bkp_
 
 if ($ret != 0) {
    $backup->bad_exit("Error during restore",$ret);
-   print "Error during restore\n";
+   print "Error during restore \n";
 }
 
 

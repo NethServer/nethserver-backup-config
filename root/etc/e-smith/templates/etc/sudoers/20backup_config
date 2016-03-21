@@ -5,6 +5,8 @@
     push @cmnd_alias_httpd_admin, qw(
         /sbin/e-smith/backup-config
         /sbin/e-smith/restore-config
+        /sbin/e-smith/delete-config
+        /sbin/e-smith/backup-config-rotate
     );
     '';
 }

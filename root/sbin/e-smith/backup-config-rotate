@@ -6,8 +6,8 @@ use esmith::ConfigDB;
 use vars qw();
 
 sub bkp_cfg_db_settings{
-	my $db = esmith::ConfigDB->open or die "Couldn't open ConfigDB\n";
-	my $config = $db->get("backup-config") or die "Backup-Config settings missing from ConfigDB\n";
+	my $db = esmith::ConfigDB->open or die "Couldn't open ConfigDB \n";
+	my $config = $db->get("backup-config") or die "Backup-Config settings missing from ConfigDB \n";
 	my $record = $config->prop("keep_backups");
     
     # set default limit for number of files to have
@@ -43,7 +43,7 @@ sub rotate_backup_files{
 	my $bkp_dir = NethServer::BackupConfig::DESTINATION_DIR;
 
 	#open the backups folder for processing
-	opendir (DIR, $bkp_dir) or die "Error opening '$bkp_dir': '$!'\n";
+	opendir (DIR, $bkp_dir) or die "Error opening '$bkp_dir': '$!' \n";
 	
 	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir (DIR);
 	

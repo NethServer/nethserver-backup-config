@@ -33,7 +33,7 @@ my $backup = new NethServer::BackupConfig();
 
 my $tracker = NethServer::TrackerClient->new();
 
-if (not defined $bkp_file) { print "Fatal Error: No backup file specified"; exit 0; };
+if (not defined $bkp_file) { print "Fatal Error: No backup file specified! \n"; exit 0; };
 
 my %tasks = ();
 $tasks{'extract'} = $tracker->declare_task('Extracting backup', 0.05);
@@ -88,12 +88,12 @@ $tracker->set_task_progress($tasks{'post'}, 0.1, 'Post-restore');
 if ($status = system("/sbin/e-smith/signal-event post-restore-config"))
 {
     $tracker->set_task_done($tasks{'post'}, "Event post-restore-config failed", 1);
-    print "Event: post-restore-config failed\n";
+    print "Event: post-restore-config failed \n";
     $backup->bad_exit("Event post-restore-config failed", $status);
 }
 $tracker->set_task_done($tasks{'post'}, '', 0);
 
 $backup->logger("SUCCESS","Restore config done");
-print "SUCCESS: Restore config done \n";
+print "SUCCESS: Restore of ".$bkp_file." config done \n";
 
 exit 0;

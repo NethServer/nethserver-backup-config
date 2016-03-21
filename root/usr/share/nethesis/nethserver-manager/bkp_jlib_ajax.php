@@ -20,7 +20,7 @@ function cleanInput($input) {
 	    '@<script[^>]*?>.*?</script>@si',   // Strip out javascript
 	    '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags
 	    '@<style[^>]*?>.*?</style>@siU'    // Strip style tags properly
-    	//,'@<![\s\S]*?--[ \t\n\r]*>@'     // --- ENABLED --- Strip multi-line comments
+    	//,'@<![\s\S]*?--[ \t\n\r]*>@'     // --- DISABLED --- Strip multi-line comments
 	);
     $output = preg_replace($search, '', $input);
     return clean_enter($output);
@@ -53,6 +53,34 @@ function format_bytes($size) {
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
 
+function get_filename_md5($filename){
+
+if (file_exists($filename.".md5")) {
+
+	$file_handle = fopen($filename.".md5", "r");
+	$txt = fgets($file_handle);
+	return substr( $txt, 0, strpos( $txt, ' ' ) );
+	fclose($file_handle);
+	} else {
+			return " <strong> .MD5 file Not Available! </strong> ";
+			};
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------------------//
+
+function calculate_md5($filename){
+
+if (file_exists($filename)) {
+
+	return md5_file( $filename );
+	
+	} else {
+			return "N/A";
+			};
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------------------//
+
 function table_backup() {
     
     $html = '        
@@ -60,25 +88,40 @@ function table_backup() {
             <table id="bkptable" class="ui-widget ui-widget-content">
             <thead>
                 <tr class="ui-widget-header">
-                    <td>File Name</td>
-                    <td style="width: 66px;">Size</td>
-                    <td style="width: 73px;">Delete</td>
-                    <td style="width: 92px;">Download</td>
-                    <td style="width: 81px;">Restore</td>
+                    <th style="width: 35px;"> - </th>
+                    <th >File Name</th>
+                    <th style="width: 250px;" > MD5 from file </th>
+                    <th style="width: 50px;" > MD5 check </th>
+                    <th style="width: 66px;" > Size </th>
+                    <th style="width: 73px;" > Delete </th>
+                    <th style="width: 92px;" > Download </th>
+                    <th style="width: 81px;" > Restore </th>
                 </tr></thead><tbody>';
 
-
-    $files = glob('backup/*.{xz}', GLOB_BRACE);
+	$files=glob('backup/*.{xz}', GLOB_BRACE);
+    arsort($files);     													//sort the array to display the latest backup first
+    $i=0;
     foreach ($files as $value) {
         if (($value != ".") && ($value != "..") && ($value != ".htaccess") && (!is_dir('backup/'.$value))) {
+			$i++;
+			unset($md5_check, $md5_value);
+			$md5_value=get_filename_md5($value);
+			$md5_check=calculate_md5($value);
+			
+			if ($md5_value != $md5_check ) {$md5_check = " <i class=\"fa fa-exclamation-triangle md5_error\" style=\"color: #e60000; text-shadow: 1px 1px 0 #444; \"  title=\"Missing <strong>.MD5</strong> file for backup archive: </br>".str_replace("backup/","",$value).". </br>Or, content of.MD5 file <strong>does not match</strong> the MD5 checksum\"></i> "; } 
+				else {$md5_check = " <i class=\"fa fa-check md5_ok\" style=\"color: #00cc33; text-shadow: 1px 1px 0 #444;\" title=\"MD5 checksum <strong>OK</strong>\"  ></i> "; }  
+			
 			$value= str_replace("backup/","",$value);
             $html .= '
                 <tr id="' . $value . '">
-                    <td>' . $value . '</td>
-                    <td>' . format_bytes(filesize('backup/' . $value)) . '</td>
-                    <td ><span class="bkp_delete" > Delete </span></td>
-                    <td ><span class="bkp_download" > Download </span></td>
-                    <td ><span class="bkp_restore" > Restore </span></td>
+                    <td style="text-align:center"> '. $i .'</td>
+                    <td> ' . $value . '</td>
+                    <td> ' . $md5_value . '</td>
+                    <td style="text-align:center" > ' . $md5_check . '</td>
+                    <td style="text-align:center" > ' . format_bytes(filesize('backup/' . $value)) . '</td>
+                    <td style="text-align:center" ><span class="bkp_delete" > <i class="fa fa-trash-o"></i> Delete </span></td>
+                    <td style="text-align:center" ><span class="bkp_download" > <i class="fa fa-download"></i> Download </span></td>
+                    <td style="text-align:center" ><span class="bkp_restore" > <i class="fa fa-refresh"></i> Restore </span></td>
                 </tr>';
         }
     }
@@ -86,10 +129,7 @@ function table_backup() {
     </tbody></table></div>
     '; 
     return $html;
-    flush();
-	ob_flush();
-
-    
+   
 };
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
@@ -132,13 +172,11 @@ function delete_backup($file_name) {
 	
 	if (isset($file_name) && !empty($file_name) && (get_file_extension($file_name) == "xz")) 
 			{
-				
-				
 				$command = '/usr/bin/sudo /sbin/e-smith/delete-config '.$file_name;
 				$result=exec($command, $out, $err);
 				
 				if ($err == 0) {
-								return ("Deleted backup ". $file_name);
+								return ("Deleted file: ". $file_name);
 								} else {
 										
 										
@@ -148,11 +186,6 @@ function delete_backup($file_name) {
 						return "Error, file is not valid for removal";
 						};
 		
-
-				
-		 
-		
-	
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 function get_backup($backup_file) {
@@ -185,6 +218,7 @@ function get_backup($backup_file) {
 function restore_backup($backup_file) {
 		$out=array();
 		$err=array();
+		unset($out, $err);
 		
 	if ((isset($backup_file)) && (!empty($backup_file)) && (get_file_extension($backup_file) == "xz")) {
 		
@@ -192,11 +226,37 @@ function restore_backup($backup_file) {
 		$rezult = exec($command, $out, $err);
 		
 	};
-if ($err==0) {return "</br>Restoration of: ".$backup_file." Done!" ; } else {return "</br>Restore: ".$backup_file."</br> Out: <pre>".print_r($out)."</pre></br> Error: <pre>".print_r($err)."</pre></br>";};
+if ($err == 0) {return "</br>Restoration of: ".$backup_file." Done!" ; } 
+	else {
+			return "</br>Restore: ".$backup_file."</br> Out: <pre>".print_r($out)."</pre></br> Error: <pre>".print_r($err)."</pre></br>";
+			};
 	
 	
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
+
+
+function upload_backup(){
+if(isset($_POST['submit_file']))
+	{
+	$check=get_file_extension($_FILES['upload_file']['name']);
+	if ( $check == "xz") { 
+							$uploadfile=$_FILES["upload_file"]["tmp_name"];
+							$target= $_SERVER['DOCUMENT_ROOT'] . "/backup/" . basename($_FILES["upload_file"]["name"]);
+							move_uploaded_file($uploadfile, $target);
+							return 'Success: '.$_FILES["upload_file"]["name"].' uploaded';
+							} 
+							else { 
+									return "Error: Filetype not allowed (".$check.")";
+									};
+	
+	
+  }else {
+			return "Error: Not posible to upload file";
+		}; 
+  
+};
+	
 
 //// SRIPT LOGIC /////
 
@@ -266,6 +326,11 @@ if ($act !="") {
 		case "upd_table":
 			echo upd_template($json);
 			break;
+		
+		case "load":
+			echo upload_backup();
+			break;	
+			
 	}; // end switch
 } else {
 	die();
