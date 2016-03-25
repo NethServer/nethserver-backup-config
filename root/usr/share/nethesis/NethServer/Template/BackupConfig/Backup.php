@@ -219,11 +219,18 @@ padding:5px;
 
 }
 
+#debug_div{
+width:99%;
+height:150px;
+float:left;
+padding:0 5px 0 5px;
+position:relative;
+float:left;
+overflow-y:auto;
 
+}
 
-/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
-  
-  
+/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */  
 ");
 
 
@@ -337,7 +344,10 @@ echo $view->buttonList()
 
 // DEBUG // 
 
-echo '<div id="extra_module_warning" class="ui-state-highlight"><span class="fa fa-info-circle"> </span><span id="debug_div" ></span></div>';
+echo '<div id="extra_module_warning" class="ui-state-highlight" style="height:162px;">
+<span class="fa fa-info-circle"> </span>
+<span id="debug_div"></span>
+</div>';
 // END DEBUG //
 
 $view->includeJavascript("
@@ -346,8 +356,9 @@ $view->includeJavascript("
 
 
 function update_info(msj){
-	
-	$('#debug_div').empty().html(msj); 
+	$('#debug_div').append('</br>'); 
+	$('#debug_div').append(msj+'</br>'); 
+	$('#debug_div').animate({scrollTop: $('#debug_div').prop()}, 400);
 
 }
 
@@ -596,8 +607,9 @@ $(document).on('click', '.bkp_delete',
 						if (yes){
 								 $.post( '/bkp_jlib_ajax.php', {act:'delete_backup', p1:fname}, function(delete_data)
 										{
+										 update_table();
 										 update_info(delete_data); 
-										 update_table(); 
+										  
 												
 										});
 								}

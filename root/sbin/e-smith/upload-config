@@ -1,0 +1,53 @@
+#! /usr/bin/perl -w
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+###
+# must be added to sudo!
+###
+
+use strict;
+use File::Copy;
+use NethServer::BackupConfig;
+
+my $bkp_file=$ARGV[0];
+my $dest_bkp_file=$ARGV[1];
+
+my $backup = new NethServer::BackupConfig();
+
+
+
+if (not defined $bkp_file) { print "TMP backup file not specified \n"; exit 0; };
+
+if ( ! -f $bkp_file ) { 		
+						print "Tmp Backup file not found! Or can't copy the tmp backup ".$bkp_file." \n";
+						exit 0;
+		} else {
+			copy($bkp_file, NethServer::BackupConfig::DESTINATION_DIR.$dest_bkp_file) or warn " Error copying ".$bkp_file." \n";
+			if ( ! -f $bkp_file ) { print "Can't create MD5 file for the backup ".$dest_bkp_file." \n"; exit 0; } 
+									else {
+											exec "/usr/libexec/nethserver/backup-config-md5 ".NethServer::BackupConfig::DESTINATION_DIR.$dest_bkp_file;	
+											}; 		
+		
+		
+			};
+
+
+exit 0;

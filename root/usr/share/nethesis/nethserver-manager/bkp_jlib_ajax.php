@@ -239,22 +239,37 @@ if ($err == 0) {return "</br>Restoration of: ".$backup_file." Done!" ; }
 function upload_backup(){
 if(isset($_POST['submit_file']))
 	{
+	$out=array();
+	$err=array();
+	
 	$check=get_file_extension($_FILES['upload_file']['name']);
 	if ( $check == "xz") { 
 							$uploadfile=$_FILES["upload_file"]["tmp_name"];
-							$target= $_SERVER['DOCUMENT_ROOT'] . "/backup/" . basename($_FILES["upload_file"]["name"]);
-							move_uploaded_file($uploadfile, $target);
-							return 'Success: '.$_FILES["upload_file"]["name"].' uploaded';
+													
+							$target=sanitize($_FILES['upload_file']['name']);
+							
+							
+							if (file_exists('/../../../..'.$uploadfile)){
+								$command='/usr/bin/sudo /sbin/e-smith/upload-config '.$uploadfile.' '.$target;
+								$rezult = exec($command, $out, $err);
+								$msj = 'Completed: Backup '.$_FILES["upload_file"]["name"].' uploaded <br/> '.print_r($out).' <br/>'.print_r($err);
+								
+								} else 
+										{ 
+										 $msj = "Error: TEMP File not found !". '/../../../..'.$uploadfile; 
+											};
+							
 							} 
 							else { 
-									return "Error: Filetype not allowed (".$check.")";
+									$msj = "Error: Filetype not allowed (".$check.")";
 									};
 	
 	
   }else {
-			return "Error: Not posible to upload file";
+			$msj = "Error: Not posible to upload file";
 		}; 
   
+  return $msj;
 };
 	
 
