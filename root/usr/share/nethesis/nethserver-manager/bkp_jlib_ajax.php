@@ -75,7 +75,7 @@ if (file_exists($filename)) { return md5_file( $filename ); } else { return "N/A
 
 function table_backup() {
     
-    $html = '        
+$html = '        
         <div id="ui-table-contain" class="ui-widget">
             <table id="bkptable" class="ui-widget ui-widget-content">
             <thead>
@@ -90,22 +90,20 @@ function table_backup() {
                     <th style="width: 81px;" > Restore </th>
                 </tr></thead><tbody>';
 
-	$files=glob('backup/*.{xz}', GLOB_BRACE);
-    arsort($files);     													//sort the array to display the latest backup first
-    $i=0;
-    foreach ($files as $value) {
-        if (($value != ".") && ($value != "..") && ($value != ".htaccess") && (!is_dir('backup/'.$value))) {
-			$i++;
-			unset($md5_check, $md5_value);
-			$md5_value=get_filename_md5($value);
-			$md5_check=calculate_md5($value);
-			
-			if ($md5_value != $md5_check ) {$md5_check = " <i class=\"fa fa-exclamation-triangle md5_error\" style=\"color: #e60000; text-shadow: 1px 1px 0 #444; \"  title=\"Missing <strong>.MD5</strong> file for backup archive: </br>".str_replace("backup/","",$value).". </br>Or, content of.MD5 file <strong>does not match</strong> the MD5 checksum\"></i> "; } 
-				else {$md5_check = " <i class=\"fa fa-check md5_ok\" style=\"color: #00cc33; text-shadow: 1px 1px 0 #444;\" title=\"MD5 checksum <strong>OK</strong>\"  ></i> "; }  
-			
-			$value= str_replace("backup/","",$value);
-            $html .= '
-                <tr id="' . $value . '">
+$files=glob('backup/*.{xz}', GLOB_BRACE);
+arsort($files);     													//sort the array to display the latest backup first
+$i=0;
+foreach ($files as $value) {
+  if (($value != ".") && ($value != "..") && ($value != ".htaccess") && (!is_dir('backup/'.$value))) {
+  $i++;
+  unset($md5_check, $md5_value);
+  $md5_value=get_filename_md5($value);
+  $md5_check=calculate_md5($value);
+  if ($md5_value != $md5_check ) {$md5_check = " <i class=\"fa fa-exclamation-triangle md5_error\" style=\"color: #e60000; text-shadow: 1px 1px 0 #444; \"  title=\"Missing <strong>.MD5</strong> file for backup archive: </br>".str_replace("backup/","",$value).". </br>Or, content of.MD5 file <strong>does not match</strong> the MD5 checksum\"></i> "; } 
+    else {$md5_check = " <i class=\"fa fa-check md5_ok\" style=\"color: #00cc33; text-shadow: 1px 1px 0 #444;\" title=\"MD5 checksum <strong>OK</strong>\"  ></i> "; }
+	
+  $value= str_replace("backup/","",$value);
+  $html .= '<tr id="' . $value . '">
                     <td style="text-align:center"> '. $i .'</td>
                     <td> ' . $value . '</td>
                     <td> ' . $md5_value . '</td>
@@ -117,11 +115,8 @@ function table_backup() {
                 </tr>';
         }
     }
-    $html .= '
-    </tbody></table></div>
-    '; 
-    return $html;
-   
+   $html .= '</tbody></table></div>'; 
+return $html;   
 };
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
@@ -133,63 +128,57 @@ function get_file_extension($file_name) {
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
 function get_keep_value() {
-		$out=array();
-		$err=array();
-		
-		$command = "/usr/bin/sudo /sbin/e-smith/db configuration getprop backup-config keep_backups";
-		$result=exec($command, $out, $err);
-		if ($err == 0) {
-						return $result;
-								} else { return $err; };
-		
+	$out=array();
+	$err=array();
+
+	$command = "/usr/bin/sudo /sbin/e-smith/db configuration getprop backup-config keep_backups";
+	$result=exec($command, $out, $err);
+	if ($err == 0) {
+					return $result;
+					} else { return $err; };
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 
 function set_keep_value($bkp_value) {
-		$out=array();
-		$err=array();
-		
-		$command = "/usr/bin/sudo /sbin/e-smith/db configuration setprop backup-config keep_backups ".$bkp_value;
-		$result=exec($command, $out, $err);
-		if ($err == 0) {
-						return $result;
-								} else { return $err; };
-		
+	$out=array();
+	$err=array();
+
+	$command = "/usr/bin/sudo /sbin/e-smith/db configuration setprop backup-config keep_backups ".$bkp_value;
+	$result=exec($command, $out, $err);
+	if ($err == 0) {
+					return $result;
+					} else { return $err; };
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 function delete_backup($file_name) {
-		$out=array();
-		$err=array();
-	
+	$out=array();
+	$err=array();
+
 	if (isset($file_name) && !empty($file_name) && (get_file_extension($file_name) == "xz")) 
-			{
-				$command = '/usr/bin/sudo /sbin/e-smith/delete-config '.$file_name;
-				$result=exec($command, $out, $err);
-				
-				if ($err == 0) {
-								return ("Deleted file: ". $file_name);
-								} else {
-										
-										
-										return "</br> Error removing: ". $file_name." </br> Output: <pre>".print_r ($out)."</pre> </br> Error: <pre>".$err."</pre>";
-										};
-				} else {
-						return "Error, file is not valid for removal";
-						};
-		
+	{
+	$command = '/usr/bin/sudo /sbin/e-smith/delete-config '.$file_name;
+	$result=exec($command, $out, $err);
+
+	if ($err == 0) {
+					return ("Deleted file: ". $file_name);
+					} else {	
+							return "</br> Error removing: ". $file_name." </br> Output: <pre>".print_r ($out)."</pre> </br> Error: <pre>".$err."</pre>";
+							};
+	} else {
+			return "Error, file is not valid for removal";
+			};
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 function get_backup($backup_file) {
-	
-	if (!$backup_file) {
-		 echo "File error!";
+
+if (!$backup_file) { echo "File error!";
 	} else {
-		
 		$path = "backup/";
 		// change the path to fit your websites document structure
 		$fullPath = $path . $backup_file;
-		if ($fd = fopen($fullPath, "rb")) {
+		if ($fd = fopen($fullPath, "rb")) 
+			{
 			header("Pragma: public");
 			header("Expires: -1");
 			header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
@@ -201,32 +190,27 @@ function get_backup($backup_file) {
 			ob_clean();
 			flush();
 			echo readfile("$fullPath");
-		};
+			};
 		fclose($fd);
 		exit;
 	};
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
 function restore_backup($backup_file) {
-		$out=array();
-		$err=array();
-		unset($out, $err);
+	$out=array();
+	$err=array();
+	unset($out, $err);
 		
-	if ((isset($backup_file)) && (!empty($backup_file)) && (get_file_extension($backup_file) == "xz")) {
-		
+	if ((isset($backup_file)) && (!empty($backup_file)) && (get_file_extension($backup_file) == "xz")) {	
 		$command='/usr/bin/sudo /sbin/e-smith/restore-config '.$backup_file;
 		$rezult = exec($command, $out, $err);
-		
 	};
 if ($err == 0) {return "</br>Restoration of: ".$backup_file." Done!" ; } 
 	else {
 			return "</br>Restore: ".$backup_file."</br> Out: <pre>".print_r($out)."</pre></br> Error: <pre>".print_r($err)."</pre></br>";
 			};
-	
-	
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------//
-
 
 function upload_backup(){
 if(isset($_POST['submit_file']))
@@ -252,7 +236,7 @@ if(isset($_POST['submit_file']))
 									$msj = "Error: Filetype not allowed (".$check.")";
 									};
   }else {
-			$msj = "Error: Not posible to upload file";
+		$msj = "Error: Not posible to upload file";
 		}; 
   
   return $msj;
@@ -290,10 +274,6 @@ if ((isset($_GET['act']))&&(!empty($_GET['act']))) {
 } else {
 	die();
 		};
-
-
-
-
 
 ///------------------------------------------------------------------///
 if ($act !="") {

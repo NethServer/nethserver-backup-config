@@ -62,4 +62,5 @@ event_actions($event,
 );
 
 safe_symlink('/var/lib/nethserver/backup' => 'root/usr/share/nethesis/nethserver-manager/backup');
+
 exit;
