@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/usr/bin/perl -w
 
 use strict;
@@ -57,3 +58,76 @@ return %backup;
 print to_json(\%backup);
 
 exit(0);
+=======
+#!/usr/bin/perl -w
+
+use strict;
+use NethServer::BackupConfig;
+use esmith::ConfigDB;
+use JSON;
+use vars qw($backup );
+
+my %backup=get_backup_files();
+
+
+sub get_backup_files{
+
+	# define the backup folder
+	my $bkp_dir = NethServer::BackupConfig::DESTINATION_DIR;
+
+	#open the backups folder for processing
+	opendir (DIR, $bkp_dir) or die "Error opening '$bkp_dir': '$!'\n";
+	
+	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir (DIR);
+	my $i=0;
+	
+
+	
+	#check that the filename array contains something (at least 1 file found)
+	if (! @bkp_files) {
+						
+						# if it does not contain a filename; return nothing
+						return;
+						
+						} else {
+								
+								# if we have something in the bkp_files array we do a sort
+								my @bkp_files_sorted= reverse sort @bkp_files; 
+								
+								
+								foreach my $file_info (@bkp_files_sorted) {
+									
+									
+									my @stats = stat(NethServer::BackupConfig::DESTINATION_DIR.$file_info);
+									 $backup{$i}{'path'} = NethServer::BackupConfig::DESTINATION_DIR.$file_info; 
+									 $backup{$i}{'name'} = $file_info; 
+									 $backup{$i}{'date'} = $stats[9];
+									 $backup{$i}{'size'} = $stats[7]; 
+	 
+									$i++;
+									};
+								
+								# and we return the file with the latest date in filename
+								
+								};
+# return $backup_head. %backup. $backup_end;		
+return %backup;						
+}
+
+
+
+
+
+#if ( -f NethServer::BackupConfig::DESTINATION ) {
+#    my @stats = stat(NethServer::BackupConfig::DESTINATION);
+#    $backup{'name'} = NethServer::BackupConfig::DESTINATION; 
+#    $backup{'date'} = $stats[9]; 
+#    $backup{'size'} = $stats[7]; 
+#}
+
+
+
+print to_json(\%backup);
+
+exit(0);
+>>>>>>> 071263455e3eb4bebfd7b0ef218b4c027a1e00de
