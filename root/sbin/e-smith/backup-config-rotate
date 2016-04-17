@@ -1,0 +1,81 @@
+#!/usr/bin/perl -w
+
+use strict;
+use NethServer::BackupConfig;
+use esmith::ConfigDB;
+use vars qw();
+
+sub bkp_cfg_db_settings{
+	my $db = esmith::ConfigDB->open or die "Couldn't open ConfigDB \n";
+	my $config = $db->get("backup-config") or die "Backup-Config settings missing from ConfigDB \n";
+	my $record = $config->prop("keep_backups");
+    
+    # set default limit for number of files to have
+    my $value = 30 ; 
+    
+    if ($record)
+           {
+               $value = $record;
+               
+           } else {
+					
+					$config->set_prop("keep_backups", $value);
+					$value = $config->prop("keep_backups");
+					}
+	
+	return $value;	
+	}
+
+sub rotate_backup_files{
+
+	my $keep = bkp_cfg_db_settings;
+	#if the value to keep the backups is 0 (keep all) then we exit
+	if ($keep == 0) {exit 0;};
+	
+	# define the backup folder
+	my $bkp_dir = NethServer::BackupConfig::DESTINATION_DIR;
+
+	#open the backups folder for processing
+	opendir (DIR, $bkp_dir) or die "Error opening '$bkp_dir': '$!' \n";
+	
+	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir (DIR);
+	
+	#check that the filename array contains something (at least 1 file found)
+	if (! @bkp_files) {
+						# if it does not contain a filename; exit 
+						exit 0;
+						
+						} else {
+								# if we have something in the bkp_files array we do a sort so we will get the newest files first
+								my @bkp_files_sorted= reverse sort @bkp_files; 
+								
+								# we check that the array contains more than max defined in $keep elements
+								if (@bkp_files_sorted > $keep ){
+															 # if it is greater than $keep, put the extra elements in a separate array
+															 my @slice = @bkp_files_sorted[$keep .. $#bkp_files_sorted];
+															 
+															 # then delete elements from the array index $keep -> end of array
+															 foreach my $file_extra (@slice) {
+									
+															 # remove the backup file and the md5 files
+															 if ( ! -f NethServer::BackupConfig::DESTINATION_DIR.$file_extra ) {
+																																print $file_extra." configuration backup file not found! \n";
+																																} else {
+																																		unlink "/var/lib/nethserver/backup/".$file_extra or warn "Error removing ".$file_extra;
+																																		unlink "/var/lib/nethserver/backup/".$file_extra.".md5" or warn "Error removing ".$file_extra.".md5";
+																																		unlink "/var/lib/nethserver/backup/".$file_extra."-content.md5" or warn "Error removing ".$file_extra."-content.md5";
+																																		};
+																		
+																													};
+																} else {
+																		# the array contains less than $keep elements, so no rotation needed; exit
+																		exit 0;
+																		};	# end else if more than max defined in $keep files found in array
+								
+								}; # end else if no files found in dir.
+}
+
+rotate_backup_files;
+
+
+exit(0);

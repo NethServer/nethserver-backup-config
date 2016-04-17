@@ -1,0 +1,151 @@
+#! /usr/bin/perl -w
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# Copyright (C) 2006 SME Server
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+#
+# Execute configuration backup only if needed
+# Backup is saved in: /var/lib/nethserver/backup/
+#
+
+use strict;
+use File::Find;
+use esmith::ConfigDB;
+use NethServer::BackupConfig;
+
+sub filter_excludes {
+    my ( $list, $exclude, $file) = @_;
+    
+    # skip directories
+    return if (-d $File::Find::name);
+
+    # skip excludes
+    if (grep $_ eq $File::Find::name, @$exclude) {
+        return;
+    }
+
+    # add files
+    push(@$list, $File::Find::name);
+}
+
+sub do_backup {
+   my ( $backup, $include, $exclude) = @_;
+   if ( $backup->backup_config($include, $exclude) == 0) {
+       chmod(0644,NethServer::BackupConfig::DESTINATION);
+       system("/usr/libexec/nethserver/backup-config-md5 ".NethServer::BackupConfig::DESTINATION);
+   } else {
+       $backup->logger('ERROR',"Can't create tar file.");
+       exit 1;
+   }
+}
+
+#
+# Takes a md5 file and a list of files as arguments.
+#   Return 1 if files are the same in both lists
+#   Return 0 otherwise
+sub same_files {
+    my ($file, $includes) = @_;
+    my @lines;
+    my $k = 0;
+    open FILE, "<", $file or die($!);
+    while (<FILE>) {
+       $k++;
+       my @tmp = split(/\s/,$_,2);
+       $tmp[1] =~ s/^\s+//;
+       $tmp[1] =~ s/\s+$//;
+       push(@lines,$tmp[1]);
+    }
+    close FILE;
+
+    my $n = scalar @$includes;
+    if ($n != $k) {
+        return 0;
+    }
+
+    return @$includes ~~ @lines;
+}
+
+my $backup = new NethServer::BackupConfig();
+my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
+
+# Read include and exclude from config directory
+my @files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
+my @include_files = ();
+for my $file (@files) {
+    if ( -e $file) {
+        find ( sub { filter_excludes (\@include_files, \@exclude_files, $_) }, $file );
+    }
+}
+
+if (!@include_files) {
+    $backup->logger('ERROR',"FATAL: no file in backup list - 1");
+    exit 1;
+}
+
+my $backup_file = get_backup_files();
+
+sub get_backup_files{
+
+	# define the backup folder
+	my $bkp_dir = NethServer::BackupConfig::DESTINATION_DIR;
+
+	#open the backups folder for processing
+	opendir my $dh, $bkp_dir or die "Error opening '$bkp_dir': '$!'\n";
+	
+	my @bkp_files = grep /^backup-config_.*\.tar\.xz$/, readdir $dh;
+	
+	#check that the filename array contains something (at least 1 file found)
+	if (! @bkp_files) {
+						
+						# if it does not contain a filename; return nothing
+						return;
+						
+						} else {
+								
+								# if we have something in the bkp_files array we do a sort
+								my @bkp_files_sorted= reverse sort @bkp_files; 
+								my $last_bkp_file=$bkp_files_sorted[0];
+								
+								# and we return the file with the latest date in filename
+								return $last_bkp_file;
+								};
+}
+
+
+   
+#my $md5_content = NethServer::BackupConfig::DESTINATION."-content.md5";
+my $md5_content = NethServer::BackupConfig::DESTINATION_DIR.$backup_file."-content.md5";
+my $cmd = "/usr/bin/md5sum --status -c $md5_content 2>/dev/null";
+
+# Execute backup if:
+#  * backup file does not exist
+#  * file list is changed 
+#  * md5sum doesn't match (file contents is changed)
+if ( ! -e NethServer::BackupConfig::DESTINATION_DIR.$backup_file ||
+    ! -e $md5_content ||
+    ! same_files($md5_content, \@include_files) ||
+    system($cmd) != 0 ) {
+						do_backup ( $backup, \@include_files, \@exclude_files);
+    
+						# call backup-rotate
+						system("/sbin/e-smith/backup-config-rotate ");
+						}
+
+exit 0;

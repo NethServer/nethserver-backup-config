@@ -1,0 +1,44 @@
+msgid "Backup started at %s"
+msgstr "Backup started at %s"
+
+msgid "Pre backup scripts status: ERROR"
+msgstr "Pre backup scripts status: ERROR"
+
+msgid "Pre backup scripts status: SUCCESS"
+msgstr "Pre backup scripts status: SUCCESS"
+
+msgid "Backup script status: ERROR"
+msgstr "Backup script status: ERROR"
+
+msgid "Backup script status: SUCCESS"
+msgstr "Backup script status: SUCCESS"
+
+msgid "Post backup scripts status: ERROR"
+msgstr "Post backup scripts status: ERROR"
+
+msgid "Post backup scripts status: SUCCESS"
+msgstr "Post backup scripts status: SUCCESS"
+
+msgid "Backup status: SUCCESS"
+msgstr "Backup status: SUCCESS"
+
+msgid "Backup ended at %s"
+msgstr "Backup ended at %s"
+
+msgid "Time elapsed: %s hours, %s minutes, %s seconds"
+msgstr "Time elapsed: %s hours, %s minutes, %s seconds"
+
+msgid "Backup report"
+msgstr "Backup report"
+
+msgid "SUCCESS"
+msgstr "SUCCESS"
+
+msgid "ERROR"
+msgstr "ERROR"
+
+msgid "Remove of old backup failed. See: "
+msgstr "Remove of old backup failed. See: "
+
+msgid "Metadata cleanup failed. See:"
+msgstr "Metadata cleanup failed. See:"
