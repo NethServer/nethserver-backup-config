@@ -24,11 +24,16 @@ use esmith::ConfigDB;
 use NethServer::BackupConfig;
 use NethServer::TrackerClient;
 
+
+my $bkp_file=$ARGV[0];
+
 my $status;
 
 my $backup = new NethServer::BackupConfig();
 
 my $tracker = NethServer::TrackerClient->new();
+
+if (not defined $bkp_file) { print "Fatal Error: No backup file specified! \n"; exit 0; };
 
 my %tasks = ();
 $tasks{'extract'} = $tracker->declare_task('Extracting backup', 0.05);
@@ -39,15 +44,17 @@ $tasks{'post'} = $tracker->declare_task('Reconfiguring system', 8.0);
 $backup->set_log_file("/var/log/restore-config.log");
 
 $backup->logger("START","Restore config started");
+print "START: Restore config started \n";
 
-if ( ! -f NethServer::BackupConfig::DESTINATION ) {
+if ( ! -f NethServer::BackupConfig::DESTINATION_DIR.$bkp_file ) {
     $ENV{'PTRACK_TASKID'} = $tasks{'extract'};
     $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Extract');
     my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
     my $bd = $conf->get('backup-data');
     my $program = $bd->prop('Program') || 'duplicity';
-    if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".NethServer::BackupConfig::DESTINATION)) {
+    if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".NethServer::BackupConfig::DESTINATION_DIR.$bkp_file)) {
         $tracker->set_task_done($tasks{'extract'}, "No configuration backup file found or can't extract from data backup", 1);
+        print "No configuration backup file found or can't extract from data backup \n";
         $backup->bad_exit("No configuration backup file found or can't extract from data backup");
     }
 }
@@ -58,29 +65,35 @@ $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Pre-restore');
 if ($status = system("/sbin/e-smith/signal-event pre-restore-config"))
 {
     $tracker->set_task_done($tasks{'extract'}, "Event pre-restore-config failed", 1);
+    print "Event: pre-restore-config failed \n";
     $backup->bad_exit("Event pre-restore-config failed", $status);
 }
 $tracker->set_task_done($tasks{'pre'}, '', 0);
 $backup->logger("STEP","pre-restore-config done");
+print "STEP: pre-restore-config done \n";
 
 $tracker->set_task_progress($tasks{'execute'}, 0.1, 'Restore');
-if ($status = system("/etc/e-smith/events/actions/restore-config-execute"))
+if ($status = system("/etc/e-smith/events/actions/restore-config-execute ".$bkp_file))
 {
     $tracker->set_task_done($tasks{'execute'}, "Action restore-config-execute failed", 1);
+    print "Action: restore-config-execute failed \n";
     $backup->bad_exit("Action restore-config-execute failed", $status);
 }
 $tracker->set_task_done($tasks{'execute'}, '', 0);
 $backup->logger("STEP","restore-config-execute done");
+print "STEP: restore-config-execute done \n";
 
 $ENV{'PTRACK_TASKID'} = $tasks{'post'};
 $tracker->set_task_progress($tasks{'post'}, 0.1, 'Post-restore');
 if ($status = system("/sbin/e-smith/signal-event post-restore-config"))
 {
     $tracker->set_task_done($tasks{'post'}, "Event post-restore-config failed", 1);
+    print "Event: post-restore-config failed \n";
     $backup->bad_exit("Event post-restore-config failed", $status);
 }
 $tracker->set_task_done($tasks{'post'}, '', 0);
 
 $backup->logger("SUCCESS","Restore config done");
+print "SUCCESS: Restore of ".$bkp_file." config done \n";
 
 exit 0;

@@ -18,7 +18,6 @@ namespace NethServer\Module\BackupConfig;
  * You should have received a copy of the GNU General Public License
  * along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 /**
  * Force configuration backup
  *
@@ -26,9 +25,7 @@ namespace NethServer\Module\BackupConfig;
  */
 class Backup extends \Nethgui\Controller\AbstractController 
 {
-
     private $backup;
-
     public function process()
     {
 	parent::process();
@@ -42,12 +39,10 @@ class Backup extends \Nethgui\Controller\AbstractController
     {
         return $this->getRequest()->isMutation() ? 'Backup' : parent::nextPath();
     }
-
     private function getBackupInfo()
     {
         return json_decode($this->getPlatform()->exec('/usr/libexec/nethserver/backup-config-info')->getOutput(), TRUE);
     }
-
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
 	parent::prepareView($view);
@@ -62,5 +57,4 @@ class Backup extends \Nethgui\Controller\AbstractController
             $view['date'] = '-';
         }
     }
-
 }

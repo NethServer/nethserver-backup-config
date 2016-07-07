@@ -61,4 +61,6 @@ event_actions($event,
     'nethserver-backup-config-list-packages' => '50',
 );
 
+safe_symlink('/var/lib/nethserver/backup' => 'root/usr/share/nethesis/nethserver-manager/backup');
+
 exit;

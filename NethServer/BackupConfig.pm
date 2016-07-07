@@ -24,13 +24,27 @@ use strict;
 use warnings;
 use File::Temp;
 use NethServer::Backup;
+#use DateTime;
+use diagnostics;
+use Time::localtime;
 
-use vars qw($VERSION @ISA @EXPORT_OK);
+use vars qw($VERSION $dt $filedate @ISA @EXPORT_OK);
+
+sub timestamp {
+  my $t = localtime;
+  return sprintf( "%04d-%02d-%02d_%02d-%02d-%02d",
+                  $t->year + 1900, $t->mon + 1, $t->mday,
+                  $t->hour, $t->min, $t->sec );
+}
+
+
+# my $filedate=strftime("%y%M%d_%H%M%S", localtime($stat->mtime));
 
 use constant LOG_FILE => "/var/log/backup-config.log";
 use constant NOTIFICATION_FILE => "/tmp/backup-config-notification";
 use constant CONF_DIR => "/etc/backup-config.d/";
-use constant DESTINATION => "/var/lib/nethserver/backup/backup-config.tar.xz";
+use constant DESTINATION_DIR =>"/var/lib/nethserver/backup/";
+use constant DESTINATION => "/var/lib/nethserver/backup/backup-config_". timestamp() .".tar.xz";
 
 
 @ISA = qw(NethServer::Backup);
