@@ -1,19 +1,19 @@
 [main]
 host = https://www.transifex.com
 
-[nethserver.BackupConfig_Backup]
+[nethserver-v6.BackupConfig_Backup]
 source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_BackupConfig_Backup.php
 source_lang = en
 type = PHP_ALT_ARRAY
 
 
-[nethserver.BackupConfig]
+[nethserver-v6.BackupConfig]
 source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_BackupConfig.php
 source_lang = en
 type = PHP_ALT_ARRAY
 
 
-[nethserver.BackupConfig_Restore]
+[nethserver-v6.BackupConfig_Restore]
 source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_BackupConfig_Restore.php
 source_lang = en
 type = PHP_ALT_ARRAY
