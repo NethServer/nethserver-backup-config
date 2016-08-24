@@ -2,7 +2,7 @@
 
 tmp=`mktemp`
 rpm -qa --queryformat "%{NAME}\n"| grep ^nethserver- > $tmp
-find /etc/e-smith/events/ -maxdepth 1 | xargs -- rpm -qf  --queryformat "%{NAME}\n" >> $tmp
+find /etc/e-smith/events/ -maxdepth 1 | xargs -- rpm -qf  --queryformat "%{NAME}\n" | grep -v "is not owned by any package" >> $tmp
 
 sort $tmp | uniq > /var/lib/nethserver/backup/package-list
 
