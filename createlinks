@@ -46,7 +46,6 @@ $event = "nethserver-backup-config-save";
 $event = "post-restore-config";
 
 event_actions($event, 
-    'nethserver-backup-config-reinstall' => '50',
     'nethserver-backup-config-apply' => '70',
 );
 
