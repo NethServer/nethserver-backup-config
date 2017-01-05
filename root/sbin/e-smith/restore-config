@@ -31,10 +31,18 @@ my $backup = new NethServer::BackupConfig();
 my $tracker = NethServer::TrackerClient->new();
 
 my %tasks = ();
+
+my $reinstall = 1;
+if ( defined($ARGV[0]) && $ARGV[0] eq '--no-reinstall' ) {
+    $reinstall = 0;
+}
+
 $tasks{'extract'} = $tracker->declare_task('Extracting backup', 0.05);
 $tasks{'pre'} = $tracker->declare_task('Preparing restore', 0.05);
 $tasks{'execute'} = $tracker->declare_task('Executing restore', 0.1);
-$tasks{'reinstall'} = $tracker->declare_task('Reinstalling packages', 0.1);
+if ($reinstall) {
+    $tasks{'reinstall'} = $tracker->declare_task('Reinstalling packages', 0.1);
+}
 $tasks{'post'} = $tracker->declare_task('Reconfiguring system', 8.0);
 
 $backup->set_log_file("/var/log/restore-config.log");
@@ -73,13 +81,15 @@ if ($status = system("/etc/e-smith/events/actions/restore-config-execute"))
 $tracker->set_task_done($tasks{'execute'}, '', 0);
 $backup->logger("STEP","restore-config-execute done");
 
-$tracker->set_task_progress($tasks{'reinstall'}, 0.1, 'Install');
-if ($status = system("/etc/e-smith/events/actions/restore-config-reinstall"))
-{
-    $tracker->set_task_done($tasks{'reinstall'}, "Action restore-config-reinstall failed", 1);
-    # do not break in case of error, keep goining with the post-restore-config
+if ($reinstall) {
+    $tracker->set_task_progress($tasks{'reinstall'}, 0.1, 'Reinstalling packages');
+    if ($status = system("/etc/e-smith/events/actions/restore-config-reinstall"))
+    {
+        $tracker->set_task_done($tasks{'reinstall'}, "Action restore-config-reinstall failed", 1);
+        # do not break in case of error, keep goining with the post-restore-config
+    }
+    $backup->logger("STEP","restore-config-reinstall done");
 }
-$backup->logger("STEP","restore-config-reinstall done");
 
 $ENV{'PTRACK_TASKID'} = $tasks{'post'};
 $tracker->set_task_progress($tasks{'post'}, 0.1, 'Post-restore');
