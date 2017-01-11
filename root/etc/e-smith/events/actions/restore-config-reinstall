@@ -22,5 +22,5 @@
 
 if [ -f /var/lib/nethserver/backup/package-list ]; then
     packages=$(sed ':a;N;$!ba;s/\n/ /g' /var/lib/nethserver/backup/package-list);
-    yum install -y $packages
+    yum --disableplugin=nethserver_events install -y $packages
 fi
