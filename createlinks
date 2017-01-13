@@ -45,9 +45,11 @@ $event = "nethserver-backup-config-save";
 
 $event = "post-restore-config";
 
-event_actions($event, 
-    'nethserver-backup-config-apply' => '70',
-);
+event_actions($event, qw(
+    adjust-fixnetwork-flag 01
+    interface-update-cond 70
+    system-adjust 70
+));
 
 
 #--------------------------------------------------

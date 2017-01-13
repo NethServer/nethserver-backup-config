@@ -1,4 +1,5 @@
 #!/bin/bash
+
 #
 # Copyright (C) 2017 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
@@ -16,11 +17,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+# along with NethServer.  If not, see COPYING.
 #
 
+flag=/var/run/.nethserver-fixnetwork
 
-if [ -f /var/lib/nethserver/backup/package-list ]; then
-    packages=$(sed ':a;N;$!ba;s/\n/ /g' /var/lib/nethserver/backup/package-list);
-    yum --disableplugin=nethserver_events install -y $packages
+if [[ ! -f $flag ]]; then
+    # remove the event name from the arg list:
+    shift
+    exec /sbin/e-smith/signal-event interface-update $*
 fi
+
