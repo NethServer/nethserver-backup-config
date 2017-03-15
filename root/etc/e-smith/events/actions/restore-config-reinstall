@@ -21,6 +21,18 @@
 
 
 if [ -f /var/lib/nethserver/backup/package-list ]; then
+
+    # Migrate packages from NS 6 to NS 7
+    # See: http://docs.nethserver.org/en/v7/release_notes.html#discontinued-packages
+    sed -i \
+       -e 's/^nethserver-vpn$/nethserver-openvpn\nnethserver-ipsec-tunnels/'  \
+       -e 's/^nethserver-collectd-web$/nethserver-cgp/' \
+       -e 's/^nethserver-fetchmail$/nethserver-getmail/' \
+       -e 's/^nethserver-snort$/nethserver-suricata/' \
+       -e 's/^nethserver-ibays$/nethserver-virtualhosts\nnethserver-samba/' \
+       -e '/^nethserver-c-icap$/d' \
+    /var/lib/nethserver/backup/package-list
+
     packages=$(sed ':a;N;$!ba;s/\n/ /g' /var/lib/nethserver/backup/package-list);
     yum --disableplugin=nethserver_events install -y $packages
 fi
