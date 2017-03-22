@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+#
+# This script connect to a remoe host and synchronize all data
+# to the local machine.
+#
+# Usage example:
+#     nethservice.nethesis.it 2222
+#
+
+set -e
+
+function help
+{
+    echo "Usage: $0 [-s] <host> <ssh_port>"
+    echo
+    echo "       -s    Execute only file synchronization"
+    echo
+    exit 0
+}
+
+_term() {
+    rm -f $include_f
+    rm -f $exclude_f
+    rm -f $ssh_keys
+    rm -f $stop_script
+}
+
+sync_only=0
+
+while getopts ":s" opt; do
+  case $opt in
+    s)
+      sync_only=1
+      shift
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+target=$1
+port=${2:-22}
+
+if [ -z $target ]; then
+    help
+fi
+
+
+# Prepare temp files
+ssh_keys=$(mktemp -u --suffix=.keys)
+include_f=$(mktemp --suffix=.include)
+exclude_f=$(mktemp --suffix=.exclude)
+hostname=$(hostname -f)
+
+ssh_options=" -o StrictHostKeyChecking=no -p $port -i $ssh_keys"
+ssh_cmd="ssh $ssh_options"
+
+# Generate SSH key and copy it to remote server
+ssh-keygen -f $ssh_keys -t rsa -N ''
+chmod 600 $ssh_keys $ssh_keys".pub"
+ssh-copy-id $ssh_options $target
+
+if [ $sync_only -eq 0 ]; then
+     # Prepare the remote machine
+     echo "Disabling access to services..."
+     $ssh_cmd root@$target 'shorewall stop'
+     echo "Creating configuration backup on $target..."
+     $ssh_cmd root@$target '/sbin/e-smith/backup-config'
+     echo "Executing pre-backup-data on $target..."
+     $ssh_cmd root@$target '/sbin/e-smith/signal-event pre-backup-data'
+else
+     echo
+     echo "Sync-only mode enabled: no action will be perfomed on the remote machine"
+     echo
+fi
+
+# Retrieve the list of files to be copied and excluded
+$ssh_cmd root@$target 'for f in /etc/backup-data.d/*.include; do cat $f; echo; done | sort | uniq | sed '/^$/d'' > $include_f
+$ssh_cmd root@$target 'for f in /etc/backup-data.d/*.exclude; do cat $f; echo; done | sort | uniq | sed '/^$/d'' > $exclude_f
+
+# Execute the sync
+rsync -azvr --delete --files-from=$include_f --exclude-from=$exclude_f -e "$ssh_cmd" root@$target:/ /
+
+echo "Synchronization finished!"
+
+if  [ $sync_only -eq 1 ]; then
+    # Cleanup ssh keys from the remote host
+    $ssh_cmd root@$target "sed -i '/root@$hostname$/d' ~/.ssh/authorized_keys" &>/dev/null
+    exit 0
+fi
+
+
+echo
+echo
+echo "You can now safely complete the migration. Execute following commands:"
+echo 
+echo "  signal-event restore-config"
+echo "  signal-event post-restore-data"
+
+# Cleanup ssh keys from the remote host
+$ssh_cmd root@$target "sed -i '/root@$hostname$/d' ~/.ssh/authorized_keys" &>/dev/null
+
+
+# Remove temporary files
+
+rm -f $include_f
+rm -f $exclude_f
+rm -f $ssh_keys
+rm -f $stop_script
+
+trap _term SIGTERM
