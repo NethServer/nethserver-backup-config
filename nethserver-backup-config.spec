@@ -41,6 +41,7 @@ rm -rf %{buildroot}
 %config /etc/backup-config.d/custom.include
 %config /etc/backup-config.d/custom.exclude
 %doc COPYING
+%doc rsync_upgrade
 %dir %{_nseventsdir}/%{name}-update
 
 
