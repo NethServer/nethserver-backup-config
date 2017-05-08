@@ -23,6 +23,7 @@
 flag=/var/run/.nethserver-fixnetwork
 
 if [[ ! -f $flag ]]; then
+    /etc/e-smith/events/actions/initialize-default-databases $*
     # remove the event name from the arg list:
     shift
     exec /sbin/e-smith/signal-event interface-update $*
