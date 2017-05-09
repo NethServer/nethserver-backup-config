@@ -46,11 +46,21 @@ $event = "nethserver-backup-config-save";
 $event = "post-restore-config";
 
 event_actions($event, qw(
+    nethserver-backup-config-setupgradeflag 00
     adjust-fixnetwork-flag 01
     interface-update-cond 70
     system-adjust 70
 ));
 
+#--------------------------------------------------
+# actions for post-restore-data event
+#--------------------------------------------------
+
+$event = "post-restore-data";
+
+event_actions($event, qw(
+    nethserver-backup-config-clearupgradeflag 99
+));
 
 #--------------------------------------------------
 # actions for pre-backup-config event

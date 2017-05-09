@@ -20,12 +20,11 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-flag=/var/run/.nethserver-fixnetwork
+flag=/var/run/.nethserver-upgrade-configdb
+Version=$(/sbin/e-smith/config getprop sysconfig Version)
 
-if [[ ! -f $flag ]]; then
-    /etc/e-smith/events/actions/initialize-default-databases $*
-    # remove the event name from the arg list:
-    shift
-    exec /sbin/e-smith/signal-event interface-update $*
+if [[ ! "${Version}" =~ ^7 ]]; then
+    echo "[NOTICE] starting upgrade from version ${Version}"
+    cp -fp /var/lib/nethserver/db/configuration ${flag};
 fi
 
