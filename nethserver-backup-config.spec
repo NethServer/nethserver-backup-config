@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 1.5.3
+Version: 1.5.4
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 10 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.4-1
+- Upgrade from NS 6 via backup and restore - NethServer/dev#5234
+
 * Thu Apr 20 2017 Davide Principi <davide.principi@nethesis.it> - 1.5.3-1
 - Upgrade from NS 6 via backup and restore - NethServer/dev#5234
 
