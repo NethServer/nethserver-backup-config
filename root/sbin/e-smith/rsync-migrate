@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+#
+# This script connect to a remoe host and synchronize all data
+# to the local machine.
+#
+# Usage example:
+#     nethservice.nethesis.it 2222
+#
+
+function help
+{
+    echo "Usage: $0 [-m] <host> <ssh_port>"
+    echo
+    echo "       -h    Display this help message."
+    echo "       -m    Stop services on the source machine and perform the migration."
+    echo
+    exit 0
+}
+
+_term() {
+    rm -f $include_f
+}
+
+sync_only=1
+
+while getopts ":h:m" opt; do
+  case ${opt} in
+    h )
+      help
+      ;;
+    m )
+      sync_only=0
+      ;;
+    \? )
+      echo "Invalid Option: -$OPTARG" 1>&2
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND -1))
+
+target=$1
+port=${2:-22}
+
+if [ -z $target ]; then
+    help
+fi
+
+trap _term SIGINT SIGTERM EXIT
+
+# Checking dependencies
+rpm -q nethserver-backup-data >/dev/null
+if [ $? -gt 0 ]; then
+    yum install nethserver-backup-data -y
+fi
+
+
+
+# Prepare temp files
+ssh_keys=/root/.ssh/id_rsa
+include_f=$(mktemp --suffix=.include)
+hostname=$(hostname -f)
+
+ssh_options=" -o UserKnownHostsFile=/dev/null -o ControlMaster=auto -o ControlPath=~/.ssh/master-%r@%h:%p -o ControlPersist=1h -o StrictHostKeyChecking=no -c blowfish -p $port -i $ssh_keys"
+ssh_cmd="ssh $ssh_options"
+
+if [ ! -f /root/.ssh/id_rsa ]; then
+    ssh-keygen -f $ssh_keys -t rsa -N ''
+    ssh-copy-id "root@$target -p $port"
+fi
+
+echo "Creating migration dir: /var/lib/migration"
+mkdir -p /var/lib/migration
+
+if [ $sync_only -eq 0 ]; then
+     # Prepare the remote machine
+     echo "Disabling access to services..."
+     $ssh_cmd root@$target "for i in qmail qpsmtpd sqpsmtpd imap imaps pop3 pop3s httpd-e-smith smb hfaxd sogod dovecot; do service \$i stop; done"
+     echo "Executing pre-backup on $target..."
+     $ssh_cmd root@$target "/sbin/e-smith/signal-event pre-backup"
+else
+     echo
+     echo "Sync-only mode enabled: no action will be perfomed on the remote machine"
+     echo
+fi
+
+# Retrieve the list of files to be copied (no exclusion)
+cat <<DEF_SME_BACKUP_LIST > $include_f
+home/e-smith
+etc/e-smith/templates-custom
+etc/e-smith/templates-user-custom
+root
+etc/sudoers
+etc/passwd
+etc/shadow
+etc/group
+etc/gshadow
+etc/samba/secrets.tdb
+etc/samba/smbpasswd
+DEF_SME_BACKUP_LIST
+
+# Execute the sync
+rsync -azvr --delete --numeric-ids --files-from=$include_f -e "$ssh_cmd" root@$target:/ /var/lib/migration
+
+echo
+echo "Synchronization finished!"
+
+if [ $sync_only -eq 0 ]; then
+    echo
+    echo "Completing migration ..."
+    signal-event migration-import /var/lib/migration
+fi
