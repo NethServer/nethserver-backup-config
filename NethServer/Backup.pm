@@ -239,6 +239,8 @@ sub load_file_list
     open (FILE, $file) or die 'Unable to open the list file: $file';
 
     while (<FILE>) {
+        # skip empty lines by matching any non-whitespace char
+        next unless /\S/;
         chop($_);
         push(@paths, $_);
     }
