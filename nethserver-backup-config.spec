@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 1.5.5
+Version: 1.5.6
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 07 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.6-1
+- Backup data: duplicity fails with "FilePrefixError: +" - Bug NethServer/dev#5309
+
 * Thu May 25 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.5-1
 - Add rsync-migrate and rsync-upgrade scripts
 
