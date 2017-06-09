@@ -35,6 +35,7 @@ mv -v NethServer root%{perl_vendorlib}
 rm -rf %{buildroot}
 (cd root ; find . -depth -print | cpio -dump %{buildroot})
 %{genfilelist} %{buildroot} > %{name}-%{version}-%{release}-filelist
+mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 
 %files -f %{name}-%{version}-%{release}-filelist 
 %defattr(-,root,root)
@@ -42,7 +43,8 @@ rm -rf %{buildroot}
 %config /etc/backup-config.d/custom.exclude
 %doc COPYING
 %dir %{_nseventsdir}/%{name}-update
-
+%dir %{_nsstatedir}/backup
+%dir %{_nsstatedir}/backup/history
 
 %changelog
 * Wed Jun 07 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.6-1
