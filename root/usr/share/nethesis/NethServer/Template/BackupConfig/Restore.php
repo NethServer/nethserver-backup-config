@@ -1,36 +1,21 @@
 <?php
 
-$view->includeCSS("
-  dl.rlc_module {
-     margin-bottom: 20px;
-  }
+echo $view->header('name')->setAttribute('template', $T('Restore_Header'));
 
-  dl.rlc_module {
-    padding: 0.5em;
-  }
-  .rlc_module dt {
-    float: left;
-    clear: left;
-    font-weight: bold;
-    margin-right: 5px;
-  }
-  .rlc_module dt:after {
-    content: \":\";
-  }
-  .rlc_module dd {
-  }
-");
+$readOnly = $view::STATE_DISABLED | $view::STATE_READONLY;
 
-echo $view->header('RLC')->setAttribute('template', $T('RLC_header'));
+echo $view->textInput('description', $readOnly);
+echo $view->textInput('size', $readOnly);
+echo $view->textInput('type', $readOnly);
+echo $view->textInput('original_ts', $readOnly);
+echo $view->textInput('ProductName', $readOnly);
+echo $view->textInput('Version', $readOnly);
+echo $view->textInput('Release', $readOnly);
 
-echo "<div>".$T('current_backup_label').":</div>";
-echo "<dl class='rlc_module'>";
-echo "<dt>".$T('date_label')."</dt><dd>".$view->textLabel('date')."</dd>"; 
-echo "<dt>".$T('size_label')."</dt><dd>".$view->textLabel('size')."</dd>"; 
-echo "</dl>";
 
 echo $view->buttonList()
     ->insert($view->button('Restore', $view::BUTTON_SUBMIT))
+    ->insert($view->button('Back', $view::BUTTON_CANCEL))
     ->insert($view->button('Help', $view::BUTTON_HELP))
 ;
 

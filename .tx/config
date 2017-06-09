@@ -7,15 +7,4 @@ source_lang = en
 type = PHP_ALT_ARRAY
 
 
-[nethserver.BackupConfig]
-source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_BackupConfig.php
-source_lang = en
-type = PHP_ALT_ARRAY
-
-
-[nethserver.BackupConfig_Restore]
-source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_BackupConfig_Restore.php
-source_lang = en
-type = PHP_ALT_ARRAY
-
 
