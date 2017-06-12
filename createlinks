@@ -71,4 +71,6 @@ event_actions($event,
     'nethserver-backup-config-list-packages' => '50',
 );
 
-exit;
+validator_actions('config-backup-upload', qw(
+    valid-nsconfbackup 20
+));
