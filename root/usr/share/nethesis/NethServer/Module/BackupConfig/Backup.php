@@ -35,7 +35,10 @@ class Backup extends \Nethgui\Controller\Table\AbstractAction
     public function process()
     {
         if ($this->getRequest()->isMutation()) {
-            $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config -f');
+            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config -f');
+            if($process->getExitCode() === 0) {
+                $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history push -t snapshot -d ${1}', array($this->parameters['Description']));
+            }
         }
     }
 

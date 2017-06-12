@@ -30,7 +30,6 @@ my $event = "nethserver-backup-config-update";
 
 event_actions($event, 'initialize-default-databases' => '00');
 
-
 #--------------------------------------------------
 # actions for nethserver-backup-config-save event
 #--------------------------------------------------
