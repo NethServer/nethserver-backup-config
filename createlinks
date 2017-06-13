@@ -73,3 +73,7 @@ event_actions($event,
 validator_actions('config-backup-upload', qw(
     valid-nsconfbackup 20
 ));
+
+event_actions('nethserver-backup-config-restorewizard', qw(
+    nethserver-backup-config-restorefromhistory 20
+));
