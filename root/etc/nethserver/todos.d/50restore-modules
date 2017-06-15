@@ -1,0 +1,54 @@
+#!/usr/bin/python
+
+#
+# Copyright (C) 2015 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+import gettext
+import json
+import sys
+import re
+import subprocess
+
+exit_code = None
+
+try:
+    packages = []
+    with open('/var/lib/nethserver/backup/package-list') as fp:
+        for line in fp:
+            packages.append(line.rstrip())
+
+    args = ['/usr/bin/rpm', '-q']
+    args.extend(packages)
+    exit_code = subprocess.check_call(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+except subprocess.CalledProcessError as e:
+    exit_code = e.returncode
+
+if(exit_code > 0):
+    gettext.textdomain('nethserver-backup-config')
+    msg = {
+        "action": {
+            "label": gettext.gettext('Install missing modules'),
+            "url": '/BackupConfig#!BackupConfig_Reinstall'
+        },
+        "text": gettext.gettext('Complete the restore procedure by installing additional modules'),
+        "icon": "download"
+    }
+    json.dump(msg, sys.stdout)
+

@@ -6,5 +6,8 @@ source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_B
 source_lang = en
 type = PHP_ALT_ARRAY
 
-
+[nethserver.nethserver-backup-configpot]
+source_file = locale/nethserver-backup-config.pot
+source_lang = en
+type = PO
 
