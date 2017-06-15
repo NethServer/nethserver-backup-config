@@ -42,9 +42,8 @@ class Upload extends \Nethgui\Controller\Table\AbstractAction
         }
 
         $arcValidator = $this->createValidator()->platform('config-backup-upload');
-
         if( ! $arcValidator->evaluate($_FILES['arc']['tmp_name'])) {
-            $report->addValidationError($this, 'UploadArc', $arcValidator);
+            $report->addValidationError($this, 'UploadValidatorWidget', $arcValidator);
         }
 
     }

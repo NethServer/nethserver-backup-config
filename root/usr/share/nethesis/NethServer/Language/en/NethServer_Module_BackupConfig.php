@@ -13,6 +13,7 @@ $L['HistoryEmpty_label'] = 'The backup history is empty. Upload an archive to ru
 $L['Configure_Header'] = 'Backup configuration';
 $L['Upload_Header'] = 'Upload a backup archive';
 $L['UploadArc_label'] = 'Select or drag here a .tar.xz file';
+$L['UploadValidatorWidget_label'] = 'Upload .tar.xz backup';
 $L['Backup_label'] = 'Create backup';
 $L['Restore_label'] = 'Restore';
 $L['Download_label'] = 'Download';
@@ -40,4 +41,3 @@ $L['Version_label'] = 'Version';
 $L['Release_label'] = 'Release';
 
 $L['restoreSuccess_notification'] = 'The system configuration has been restored';
-
