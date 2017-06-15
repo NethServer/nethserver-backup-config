@@ -3,7 +3,7 @@
 $L['BackupConfig_Description'] = 'Manage configuration backup';
 $L['BackupConfig_Tags'] = 'backup configuration automatic restore config';
 $L['BackupConfig_Title'] = 'Backup (configuration)';
-$L['Restore_Title'] = 'Restore from configuration backup';
+$L['Restore_Title'] = 'Restore configuration backup';
 $L['Restore_Action'] = 'Restore the uploaded configuration backup archive';
 $L['Backup_Header'] = 'Create a backup of system configuration';
 $L['Index_Header'] = 'Backup/Restore of system configuration';
@@ -41,3 +41,4 @@ $L['Version_label'] = 'Version';
 $L['Release_label'] = 'Release';
 
 $L['restoreSuccess_notification'] = 'The system configuration has been restored';
+$L['InternetConnectionNotAvailable'] = 'There is no connection to software repositories. The restore procedure will skip the installation of additional modules.';

@@ -23,7 +23,7 @@
 namespace NethServer\Module\FirstConfigWiz;
 use Nethgui\System\PlatformInterface as Validate;
 
-class Restore extends \Nethgui\Controller\AbstractController
+class Restore extends \Nethgui\Controller\AbstractController implements \Nethgui\Component\DependencyConsumer
 {
     public $wizardPosition = 30;
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $attributes) {
@@ -61,6 +61,22 @@ class Restore extends \Nethgui\Controller\AbstractController
         }
     }
 
+    public function prepareView(\Nethgui\View\ViewInterface $view)
+    {
+        parent::prepareView($view);
+        $view['InternetWarning'] = '';
+        if ($view->getTargetFormat() === $view::TARGET_JSON) {
+            $exitCode = $this->getPlatform()->exec('curl --connect-timeout 4  http://mirrorlist.centos.org')->getExitCode();
+            if($exitCode === 0) {
+                // pass
+            } else {
+                $icon = '<i class="fa fa-2x fa-exclamation-triangle" aria-hidden="true"></i>';
+                $view['InternetWarning'] = $icon . '<span class="text">' . htmlspecialchars($view->translate("InternetConnectionNotAvailable")) . '</span>';
+            }
+        }
+
+    }
+
     public function nextPath() {
         if($_FILES['arc']['tmp_name']) {
             return 'Review';
@@ -71,4 +87,16 @@ class Restore extends \Nethgui\Controller\AbstractController
         return parent::nextPath();
     }
 
+    public function setUserNotifications(\Nethgui\Model\UserNotifications $n)
+    {
+        $this->notifications = $n;
+        return $this;
+    }
+
+    public function getDependencySetters()
+    {
+        return array(
+            'UserNotifications' => array($this, 'setUserNotifications'),
+        );
+    }
 }
