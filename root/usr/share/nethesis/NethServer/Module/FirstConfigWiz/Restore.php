@@ -30,11 +30,17 @@ class Restore extends \Nethgui\Controller\AbstractController implements \Nethgui
         return new \NethServer\Tool\CustomModuleAttributesProvider($attributes, array('languageCatalog' => 'NethServer_Module_BackupConfig'));
     }
 
+    public function initialize()
+    {
+        parent::initialize();
+        $this->declareParameter('RestoreConfigStatus', Validate::SERVICESTATUS);
+    }
+
     public function validate(\Nethgui\Controller\ValidationReportInterface $report)
     {
         parent::validate($report);
 
-        if( ! $this->getRequest()->isMutation() || ! $_FILES['arc']['tmp_name']) {
+        if( ! $this->getRequest()->isMutation() || $this->parameters['RestoreConfigStatus'] === 'disabled') {
             return;
         }
 

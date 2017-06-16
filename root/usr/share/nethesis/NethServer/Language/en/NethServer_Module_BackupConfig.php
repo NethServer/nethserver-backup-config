@@ -3,7 +3,8 @@
 $L['BackupConfig_Description'] = 'Manage configuration backup';
 $L['BackupConfig_Tags'] = 'backup configuration automatic restore config';
 $L['BackupConfig_Title'] = 'Backup (configuration)';
-$L['Restore_Title'] = 'Restore configuration backup';
+$L['Restore_Title'] = 'Restore configuration';
+$L['RestoreConfigStatus_label'] = 'Skip manual configuration and restore a backup file';
 $L['Restore_Action'] = 'Restore the uploaded configuration backup archive';
 $L['Backup_Header'] = 'Create a backup of system configuration';
 $L['Index_Header'] = 'Backup/Restore of system configuration';
