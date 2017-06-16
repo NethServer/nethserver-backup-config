@@ -25,5 +25,8 @@ set -e
 # Pull the last item
 /usr/libexec/nethserver/backup-config-history pull
 
+# Drop the event name argument
+shift
+
 # Run the restore procedure
-/sbin/e-smith/restore-config
+exec /sbin/e-smith/restore-config "$@"

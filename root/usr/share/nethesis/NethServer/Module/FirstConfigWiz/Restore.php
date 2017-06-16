@@ -34,6 +34,7 @@ class Restore extends \Nethgui\Controller\AbstractController implements \Nethgui
     {
         parent::initialize();
         $this->declareParameter('RestoreConfigStatus', Validate::SERVICESTATUS);
+        $this->declareParameter('InstallPackages', Validate::YES_NO);
     }
 
     public function validate(\Nethgui\Controller\ValidationReportInterface $report)
@@ -55,14 +56,20 @@ class Restore extends \Nethgui\Controller\AbstractController implements \Nethgui
     {
         parent::process();
         if($this->getRequest()->isMutation() && $_FILES['arc']['tmp_name']) {
+            $event = 'nethserver-backup-config-restorewizard';
+            $actionId = 'Restore_Action_InstallPackages';
+            if($this->parameters['InstallPackages'] === 'no') {
+                $event .= ' --no-reinstall';
+                $actionId = 'Restore_Action_NoInstallPackages';
+            }
             $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history push -t upload -f ${1} -d ${2}', array($_FILES['arc']['tmp_name'], 'First configuration wizard'));
             $this->getParent()->storeAction(array(
                 'message' => array(
                     'module' => $this->getIdentifier(),
-                    'id' => 'Restore_Action',
-                    'args' => array()
+                    'id' => $actionId,
+                    'args' => $this->parameters->getArrayCopy()
                 ),
-                'events' => array('nethserver-backup-config-restorewizard')
+                'events' => array($event)
             ));
         }
     }
@@ -71,12 +78,14 @@ class Restore extends \Nethgui\Controller\AbstractController implements \Nethgui
     {
         parent::prepareView($view);
         $view['InternetWarning'] = '';
+        $view['InstallPackages'] = 'yes';
         if ($view->getTargetFormat() === $view::TARGET_JSON) {
             $exitCode = $this->getPlatform()->exec('curl --connect-timeout 4  http://mirrorlist.centos.org')->getExitCode();
             if($exitCode === 0) {
                 // pass
             } else {
                 $icon = '<i class="fa fa-2x fa-exclamation-triangle" aria-hidden="true"></i>';
+                $view['InstallPackages'] = 'no';
                 $view['InternetWarning'] = $icon . '<span class="text">' . htmlspecialchars($view->translate("InternetConnectionNotAvailable")) . '</span>';
             }
         }

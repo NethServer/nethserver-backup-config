@@ -16,6 +16,7 @@ echo $view->fieldsetSwitch('RestoreConfigStatus', 'enabled', $view::FIELDSETSWIT
         ->setAttribute('escapeHtml', FALSE)
         ->setAttribute('class', 'internet'))
     ->insert($view->literal($uploadWidget))
+    ->insert($view->checkBox('InstallPackages', 'yes')->setAttribute('uncheckedValue', 'no'))
 ;
 
 include 'WizFooter.php';

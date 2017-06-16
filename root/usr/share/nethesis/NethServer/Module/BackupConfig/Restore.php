@@ -40,6 +40,7 @@ class Restore extends \Nethgui\Controller\Table\RowAbstractAction
             array('Release', FALSE, \Nethgui\Controller\Table\Modify::FIELD),
         );
         $this->setSchema($parameterSchema);
+        $this->declareParameter('InstallPackages', Validate::YES_NO);
         parent::initialize();
     }
 
@@ -53,29 +54,31 @@ class Restore extends \Nethgui\Controller\Table\RowAbstractAction
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
         parent::prepareView($view);
-        if($this->getRequest()->isValidated()) {
-            $dateFormat = 'Y-m-d H:i:s T';
-            $view['disk_ts'] = date($dateFormat, $view['disk_ts']);
-            $view['original_ts'] = date($dateFormat, $view['original_ts']);
-            $view['push_ts'] = date($dateFormat, $view['push_ts']);
-            $view['name'] = $view['id'];
-            $view['type'] = ucfirst($view['type']);
-            if($view['description']) {
-                $view['name'] = sprintf('%s - %s', $view['id'], $view['description']);
-            }
-            $view['size'] = $this->getHumanFilesize($view['size']);
-            if($this->getRequest()->isMutation()) {
-                $this->getPlatform()->setDetachedProcessCondition('success', array(
-                    'location' => array(
-                        'url' => $view->getModuleUrl('/BackupConfig?restoreSuccess'),
-                        'freeze' => TRUE,
-                )));
-                $this->getPlatform()->setDetachedProcessCondition('failure', array(
-                    'location' => array(
-                        'url' => $view->getModuleUrl('/BackupConfig?restoreFailure&taskId={taskId}'),
-                        'freeze' => TRUE,
-                )));
-            }
+        if( ! $this->getRequest()->isValidated()) {
+            return;
+        }
+        $view['InstallPackages'] = 'yes';
+        $dateFormat = 'Y-m-d H:i:s T';
+        $view['disk_ts'] = date($dateFormat, $view['disk_ts']);
+        $view['original_ts'] = date($dateFormat, $view['original_ts']);
+        $view['push_ts'] = date($dateFormat, $view['push_ts']);
+        $view['name'] = $view['id'];
+        $view['type'] = ucfirst($view['type']);
+        if($view['description']) {
+            $view['name'] = sprintf('%s - %s', $view['id'], $view['description']);
+        }
+        $view['size'] = $this->getHumanFilesize($view['size']);
+        if($this->getRequest()->isMutation()) {
+            $this->getPlatform()->setDetachedProcessCondition('success', array(
+                'location' => array(
+                    'url' => $view->getModuleUrl('/BackupConfig?restoreSuccess'),
+                    'freeze' => TRUE,
+            )));
+            $this->getPlatform()->setDetachedProcessCondition('failure', array(
+                'location' => array(
+                    'url' => $view->getModuleUrl('/BackupConfig?restoreFailure&taskId={taskId}'),
+                    'freeze' => TRUE,
+            )));
         }
     }
 
@@ -84,7 +87,11 @@ class Restore extends \Nethgui\Controller\Table\RowAbstractAction
         if ($this->getRequest()->isMutation()) {
             $process = $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history pull -i ${1}', array($this->parameters['id']));
             if($process->getExitCode() === 0) {
-                $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/restore-config --mask-unit httpd-admin', array(), TRUE);
+                $args = array('--mask-unit', 'httpd-admin');
+                if($this->parameters['InstallPackages'] === 'no') {
+                    $args[] = '--no-reinstall';
+                }
+                $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/restore-config ${@}', $args, TRUE);
             }
         }
     }

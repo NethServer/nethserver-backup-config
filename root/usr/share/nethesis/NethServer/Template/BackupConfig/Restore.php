@@ -12,6 +12,7 @@ echo $view->textInput('ProductName', $readOnly);
 echo $view->textInput('Version', $readOnly);
 echo $view->textInput('Release', $readOnly);
 
+echo $view->checkBox('InstallPackages', 'yes')->setAttribute('uncheckedValue', 'no');
 
 echo $view->buttonList()
     ->insert($view->button('Restore', $view::BUTTON_SUBMIT))
