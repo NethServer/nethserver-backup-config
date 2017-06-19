@@ -1,0 +1,6 @@
+#
+# 20_nethserver_backup_config
+#
+%adm ALL=NOPASSWD: /sbin/e-smith/backup-config, \
+    /sbin/e-smith/restore-config, \
+    /usr/libexec/nethserver/backup-config-history

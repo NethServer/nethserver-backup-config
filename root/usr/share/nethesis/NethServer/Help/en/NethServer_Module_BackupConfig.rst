@@ -2,30 +2,35 @@
 Backup (configuration)
 ======================
 
-Execute and restore configuration backup.
+Configuration backup contains only the system configuration state. It is designed 
+to require little storage and restored quickly.
 
-Backup
+Create backup
+=============
+
+Create a snapshot of the current system configuration state and save it.
+
+Upload
 ======
 
-Configuration backup contains only system configuration files.
-This type of backup is executed only if any file is changed in the last 24 hours.
+Upload an archive.
 
-You can force the execution of a new backup using the *Backup now* button.
-The backup will be overwritten only if necessary.
+Configure
+=========
+
+Every day a scheduled task adds a snaphost to the list if the configuration has
+been changed in the last day. The :guilabel:`Automatic backups to keep` sets how
+many scheduled backups to keep.
 
 Restore
 =======
 
-Restore last configuration backup.
+Restore the configuration backup item. If the option  :guilabel:`Install
+original modules and restore their configuration` is  unchecked, additional
+modules are not installed automatically.
 
-When restoring, choose one of the following options:
 
-* Same hardware (also restore network configuration)
-* Different hardware (network must be reconfigured)
 
-The restore process will reconfigure the entire system.
 
-.. raw:: html
 
-   {{{INCLUDE NethServer_Module_BackupConfig_*.html}}}
 

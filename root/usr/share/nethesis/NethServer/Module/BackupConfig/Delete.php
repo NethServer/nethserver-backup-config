@@ -23,23 +23,23 @@
 namespace NethServer\Module\BackupConfig;
 use Nethgui\System\PlatformInterface as Validate;
 
-
-class Backup extends \Nethgui\Controller\Table\AbstractAction
+class Delete extends \Nethgui\Controller\Table\Modify
 {
     public function initialize()
     {
+        $parameterSchema = array(
+            array('id', Validate::ANYTHING, \Nethgui\Controller\Table\Modify::KEY),
+        );
+        $this->setSchema($parameterSchema);
+        $this->setViewTemplate('Nethgui\Template\Table\Delete');
         parent::initialize();
-        $this->declareParameter('Description', $this->createValidator()->maxLength(32));
     }
 
     public function process()
     {
         if ($this->getRequest()->isMutation()) {
-            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config -f');
-            if($process->getExitCode() === 0) {
-                $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history push -t snapshot -d ${1}', array($this->parameters['Description']));
-            }
+            $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history drop -i ${@}', array($this->parameters['id']));
+            $this->getParent()->getAdapter()->flush();
         }
     }
-
 }

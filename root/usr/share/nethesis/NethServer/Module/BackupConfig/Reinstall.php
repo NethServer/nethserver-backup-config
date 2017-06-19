@@ -21,24 +21,15 @@
  */
 
 namespace NethServer\Module\BackupConfig;
-use Nethgui\System\PlatformInterface as Validate;
 
-
-class Backup extends \Nethgui\Controller\Table\AbstractAction
+class Reinstall extends \Nethgui\Controller\Table\AbstractAction
 {
-    public function initialize()
-    {
-        parent::initialize();
-        $this->declareParameter('Description', $this->createValidator()->maxLength(32));
-    }
 
     public function process()
     {
-        if ($this->getRequest()->isMutation()) {
-            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config -f');
-            if($process->getExitCode() === 0) {
-                $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history push -t snapshot -d ${1}', array($this->parameters['Description']));
-            }
+        if($this->getRequest()->isMutation()) {
+            $packages = implode(',', array_map('trim', file('/var/lib/nethserver/backup/package-list')));
+            $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/pkgaction --install ${1}', array($packages), TRUE);
         }
     }
 

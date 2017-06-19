@@ -1,5 +1,7 @@
 <?php
 
+namespace NethServer\Module\BackupConfig;
+
 /*
  * Copyright (C) 2017 Nethesis S.r.l.
  * http://www.nethesis.it - nethserver@nethesis.it
@@ -20,25 +22,19 @@
  * along with NethServer.  If not, see COPYING.
  */
 
-namespace NethServer\Module\BackupConfig;
-use Nethgui\System\PlatformInterface as Validate;
-
-
-class Backup extends \Nethgui\Controller\Table\AbstractAction
+class Configure extends \Nethgui\Controller\Table\AbstractAction
 {
     public function initialize()
     {
         parent::initialize();
-        $this->declareParameter('Description', $this->createValidator()->maxLength(32));
+        $this->declareParameter('HistoryLength', $this->createValidator()->integer()->greatThan(0)->lessThan(32), array('configuration', 'backup-config', 'HistoryLength'));
     }
-
+    
     public function process()
     {
-        if ($this->getRequest()->isMutation()) {
-            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config -f');
-            if($process->getExitCode() === 0) {
-                $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history push -t snapshot -d ${1}', array($this->parameters['Description']));
-            }
+        if($this->getRequest()->isMutation()) {
+            $this->parameters->save();
+            $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history drop -e');
         }
     }
 

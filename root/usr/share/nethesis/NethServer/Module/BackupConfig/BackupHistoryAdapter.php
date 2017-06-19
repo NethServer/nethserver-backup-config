@@ -21,25 +21,30 @@
  */
 
 namespace NethServer\Module\BackupConfig;
-use Nethgui\System\PlatformInterface as Validate;
 
-
-class Backup extends \Nethgui\Controller\Table\AbstractAction
+class BackupHistoryAdapter extends \Nethgui\Adapter\LazyLoaderAdapter
 {
-    public function initialize()
-    {
-        parent::initialize();
-        $this->declareParameter('Description', $this->createValidator()->maxLength(32));
-    }
+    private $platform;
 
-    public function process()
+    public function __construct(\Nethgui\System\PlatformInterface $platform)
     {
-        if ($this->getRequest()->isMutation()) {
-            $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config -f');
-            if($process->getExitCode() === 0) {
-                $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history push -t snapshot -d ${1}', array($this->parameters['Description']));
-            }
+        $this->platform = $platform;
+        parent::__construct(array($this, 'historyLoader'));
+    }
+    
+    public function historyLoader()
+    {
+        $loader = new \ArrayObject();
+        $items = json_decode($this->platform->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history list')->getOutput(), TRUE);
+        foreach ($items as $row) {
+            $loader[$row['id']] = $row;
         }
+        return $loader;
     }
-
+    
+    public function flush()
+    {
+        $this->data = NULL;
+        return $this;
+    }
 }

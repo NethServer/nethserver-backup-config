@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# Run the backup configuration
+/sbin/e-smith/backup-config
+
+# Do we have the last config backup in our history?
+md5sum /var/lib/nethserver/backup/history/*.tar.xz | grep -q $(cut -f 1 -d ' ' /var/lib/nethserver/backup/backup-config.tar.xz.md5)
+
+if [[ $? != 0 ]]; then
+    /usr/libexec/nethserver/backup-config-history push -t cron -d $(date +@%H:%M)
+fi

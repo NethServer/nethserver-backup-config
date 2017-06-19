@@ -23,7 +23,21 @@ use strict;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
 use NethServer::TrackerClient;
+use Getopt::Std;
 use POSIX qw/strftime/;
+
+my %opts;
+
+getopts('hf', \%opts);
+
+if($opts{'h'}) {
+    print "Usage: backup-config [-f]\n";
+    exit(0);
+}
+
+if($opts{'f'}) {
+    unlink NethServer::BackupConfig::DESTINATION;
+}
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 my $backup = $conf->get('backup-config');

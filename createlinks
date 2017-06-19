@@ -29,8 +29,6 @@ use esmith::Build::CreateLinks  qw(:all);
 my $event = "nethserver-backup-config-update";
 
 event_actions($event, 'initialize-default-databases' => '00');
-templates2events("/etc/sudoers", $event);
-
 
 #--------------------------------------------------
 # actions for nethserver-backup-config-save event
@@ -72,4 +70,10 @@ event_actions($event,
     'nethserver-backup-config-list-packages' => '50',
 );
 
-exit;
+validator_actions('config-backup-upload', qw(
+    valid-nsconfbackup 20
+));
+
+event_actions('nethserver-backup-config-restorewizard', qw(
+    nethserver-backup-config-restorefromhistory 20
+));

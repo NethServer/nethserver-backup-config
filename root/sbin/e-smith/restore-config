@@ -23,6 +23,17 @@ use strict;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
 use NethServer::TrackerClient;
+use Getopt::Long;
+
+my $reinstall = 1;
+my @mask_units;
+
+# The --reinstall option does not take an argument and may be negated
+# by prefixing it with "no" or "no-": --no-reinstall --noreinstall
+GetOptions(
+    'reinstall!' => \$reinstall,
+    'mask-unit=s' => \@mask_units,
+);
 
 my $status;
 
@@ -31,11 +42,6 @@ my $backup = new NethServer::BackupConfig();
 my $tracker = NethServer::TrackerClient->new();
 
 my %tasks = ();
-
-my $reinstall = 1;
-if ( defined($ARGV[0]) && $ARGV[0] eq '--no-reinstall' ) {
-    $reinstall = 0;
-}
 
 $tasks{'extract'} = $tracker->declare_task('Extracting backup', 0.05);
 $tasks{'pre'} = $tracker->declare_task('Preparing restore', 0.05);
@@ -93,8 +99,10 @@ if ($reinstall) {
 
 $ENV{'PTRACK_TASKID'} = $tasks{'post'};
 $tracker->set_task_progress($tasks{'post'}, 0.1, 'Post-restore');
-if ($status = system("/sbin/e-smith/signal-event post-restore-config"))
-{
+system('/usr/bin/systemctl', 'mask', '--runtime', @mask_units);
+$status = system("/sbin/e-smith/signal-event post-restore-config");
+system('/usr/bin/systemctl', 'unmask', @mask_units);
+if($status != 0) {
     $tracker->set_task_done($tasks{'post'}, "Event post-restore-config failed", 1);
     $backup->bad_exit("Event post-restore-config failed", $status);
 }

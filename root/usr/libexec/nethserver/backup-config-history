@@ -1,0 +1,247 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+use strict;
+use JSON;
+use Getopt::Std;
+use File::Basename;
+use File::Temp;
+use NethServer::BackupConfig;
+use esmith::ConfigDB;
+use Data::Dumper;
+
+my $command = shift;
+my $historyDir = '/var/lib/nethserver/backup/history';
+
+my %commands = (
+    'help' => [\&command_help, ''],
+    'push' => [\&command_push, '[-f TMPFILE] [-d TEXT] [-t snapshot|upload|cron]'],
+    'pull' => [\&command_pull, '[-i ID] [-f TMPFILE]'],
+    'drop' => [\&command_drop, '{ -i ID | -e }'],
+    'list' => [\&command_list, ''],
+);
+my %opts;
+getopts('hei:d:f:t:', \%opts);
+
+if(!defined $command || !exists $commands{$command}) {
+    command_help();
+    exit(1);
+}
+
+if($opts{'h'}) {
+    $command = 'help';
+}
+
+if($opts{'f'} && ($opts{'f'} !~ m[^/tmp/] || ! -f $opts{'f'})) {
+    command_help();
+    exit(1);
+}
+
+$commands{$command}->[0]->();
+
+#
+# commands
+#
+
+# print an help message
+sub command_help
+{
+    my $executable = basename($0);
+    print "$executable subcommands:\n";
+    foreach (keys %commands) {
+        print "     $_ " . $commands{$_}->[1] . "\n";
+    }
+    print "\n";
+}
+
+# push the current backup into the history
+sub command_push
+{
+    my $sourceFile = $opts{'f'} || NethServer::BackupConfig::DESTINATION;
+    my $archiveElement = _get_freeArchiveElement($opts{'t'});
+
+    if(!$archiveElement) {
+        die("[ERROR] could not get a free archive element\n");
+    }
+
+    system(qw(cp -p), $sourceFile, $archiveElement);
+
+    my %meta = (
+        _extract_meta_from_archive($archiveElement),
+        'push_ts' => time(),
+        'size' => -s $archiveElement,
+        'description' => ($opts{'d'} || ''),
+        'type' => ($opts{'t'} ||  ''),
+    );
+    open(META, '>', $archiveElement . '.json');
+    print META to_json(\%meta);
+    close(META);
+}
+
+
+sub command_pull
+{
+    my $archiveElement;
+    if($opts{'i'}) {
+        $archiveElement = sprintf('%s/%02s.tar.xz', $historyDir, $opts{'i'});
+    } else {
+        ($archiveElement) = sort { -M $a <=> -M $b } glob($historyDir . '/*.tar.xz');
+    }
+
+    if( ! -e $archiveElement ) {
+        warn(sprintf("[ERROR] cannot pull %s out of backup history.\n", $opts{'i'}));
+        exit(2);
+    }
+
+    if($opts{'f'}) {
+        system(qw(cp -p), $archiveElement, $opts{'f'});
+        system(qw(chown srvmgr:adm), $opts{'f'});
+    } else {
+        system(qw(cp -p), $archiveElement, NethServer::BackupConfig::DESTINATION);
+        unlink(NethServer::BackupConfig::DESTINATION . '.md5');
+        unlink(NethServer::BackupConfig::DESTINATION . '-content.md5');
+    }
+
+}
+
+sub command_list
+{
+    my @items;
+    foreach (sort { -M $a <=> -M $b } glob($historyDir . '/*.tar.xz')) {
+        push @items, _get_meta($_);
+    }
+    print to_json(\@items);
+}
+
+sub command_drop
+{
+    if($opts{'i'}) {
+        unlink(sprintf('%s/%s.tar.xz', $historyDir, $opts{'i'}));
+        unlink(sprintf('%s/%s.tar.xz.json', $historyDir, $opts{'i'}));
+    } elsif($opts{'e'}) {
+        # trim "cron" type history to defined length:
+        my $historyLength = esmith::ConfigDB->open_ro()->get_prop('backup-config', 'HistoryLength') || 7;
+        my @items = sort { -M $a <=> -M $b } glob($historyDir . '/c*.tar.xz');
+        foreach (splice @items, 0, -$historyLength) {
+            unlink($_);
+            unlink($_ . '.json');
+        }
+    } else {
+        command_help();
+        exit(1);
+    }
+}
+
+#
+# helpers
+#
+
+#
+# Returns a suitable file name for the given element type.
+#
+# - cron: cycle on a pool of HistoryLength size
+# - other types: infinite allocation
+#
+sub _get_freeArchiveElement
+{
+    my $type = substr(shift @_, 0, 1);
+    my $historyLength = 100;
+    if($type eq 'c') {
+        $historyLength = esmith::ConfigDB->open_ro()->get_prop('backup-config', 'HistoryLength') || 7;
+    }
+    my @historyElements = sort { -M $a <=> -M $b } glob($historyDir . sprintf('/%s*.tar.xz', $type));
+
+    if(scalar @historyElements < $historyLength) {
+        # lookup/generate a free slot
+        for(my $i = 0; $i < $historyLength; $i ++) {
+            my $candidate = sprintf('%s/%s%02d.tar.xz', $historyDir, $type, $i);
+            if( ! -e $candidate ) {
+                return $candidate;
+            }
+        }
+    }
+
+    # return the oldest archive
+    return $historyElements[-1];
+}
+
+sub _get_meta
+{
+    my $file = shift;
+    my $meta;
+    open(my $mfh, '<', $file . '.json');
+    if($mfh) {
+        $meta = eval { local $/; from_json(<$mfh>) };
+        close($mfh);
+    }
+
+    if(! defined($meta)){
+        my @ts = stat($file);
+        $meta = {
+            'size' => -s $file,
+            'disk_ts' => $ts[9],
+            'original_ts' => $ts[9],
+            'Version' => '',
+            'ProductName' => '',
+            'Release' => '',
+            'push_ts' => time(),
+            'description' => '',
+            'type' => 'unknown',
+        }
+    }
+
+    $meta->{'id'} = basename($file, '.tar.xz');
+
+    return $meta;
+}
+
+#
+# Get the original backup timestamp from a well-known file
+#
+sub _extract_meta_from_archive
+{
+    my $filePath = shift;
+    if( ! -r $filePath) {
+        return 0;
+    }
+    my $tmpDir = File::Temp::mkdtemp('/tmp/backup-config.XXXXXX');
+    system(qw(tar -x -C), $tmpDir, '-f', $filePath, qw(--strip 4 var/lib/nethserver/backup/package-list var/lib/nethserver/db/configuration));
+
+    my @ots = stat("$tmpDir/package-list");
+    my @dts = stat($filePath);
+    my %meta = (
+        'original_ts' => $ots[9],
+        'disk_ts' => $dts[9],
+    );
+
+    foreach (qw(Version ProductName Release)) {
+        my $prop = qx(/sbin/e-smith/db $tmpDir/configuration getprop sysconfig $_);
+        chomp($prop);
+        $meta{$_} = $prop;
+    }
+
+    unlink "$tmpDir/package-list";
+    unlink "$tmpDir/configuration";
+    rmdir $tmpDir;
+
+    return %meta;
+}
