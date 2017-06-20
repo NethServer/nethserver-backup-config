@@ -127,17 +127,12 @@ if [ $sync_only -eq 0 ]; then
     echo "Executing post-restore-config ..."
     /sbin/e-smith/restore-config
 
-    if [ -f /var/run/.nethserver-fixnetwork ]; then
-        echo
-        echo "Please access the web interface and fix network configuration."
-        echo "Then, return to the shell and execute:"
-        echo
-        echo "     signal-event post-restore-data"
-    else
-        echo "Executing post-restore-data ..."
-        signal-event post-restore-data
-
-        echo
-        echo "Done!"
-    fi
+    echo
+    echo "Please access the web interface and fix network configuration."
+    echo "Then, return to the shell and execute:"
+    echo
+    echo "     signal-event post-restore-data"
+    echo
+    echo "WARNING: do not reboot the system before executing the above command!"
+    echo
 fi
