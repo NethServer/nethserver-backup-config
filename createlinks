@@ -77,3 +77,7 @@ validator_actions('config-backup-upload', qw(
 event_actions('nethserver-backup-config-restorewizard', qw(
     nethserver-backup-config-restorefromhistory 20
 ));
+
+event_actions('post-backup-data', qw(
+    nethserver-backup-config-push2mount 20
+));
