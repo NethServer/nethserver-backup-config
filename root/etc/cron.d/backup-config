@@ -1,3 +1,0 @@
-# Execute configuration backup if enabled
-15 0 * * *   root /usr/libexec/nethserver/backup-config-cron
-
