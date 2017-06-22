@@ -20,6 +20,14 @@
 # along with NethServer.  If not, see COPYING.
 #
 
+export BACKUP_CONFIG_CRONJOB=1
+
+BackupDataStatus=$(/sbin/e-smith/config getprop backup-data status)
+
+if [[ "${BackupDataStatus}" == "enabled" ]]; then
+    exit 0;
+fi
+
 # Run the backup configuration
 /sbin/e-smith/backup-config
 
