@@ -20,18 +20,16 @@
 # along with NethServer.  If not, see COPYING.
 #
 
-# Knowing the execution context could be useful to pre/post backup-config 
-# event actions:
-export BACKUP_CONFIG_CRONJOB=1
+md5file="/var/lib/nethserver/backup/backup-config.tar.xz.md5"
 
-BackupDataStatus=$(/sbin/e-smith/config getprop backup-data status)
-if [[ "${BackupDataStatus}" == "enabled" ]]; then
-    exit 0;
+if [[ ! -f "${md5file}" ]]; then
+    echo "[ERROR] missing backup-config .md5 file"
+    exit 1
 fi
 
-# Run the backup configuration
-/sbin/e-smith/backup-config
+# Do we have the last config backup in our history?
+md5sum /var/lib/nethserver/backup/history/*.tar.xz | grep -q $(cut -f 1 -d ' ' "${md5file}")
 
-if [[ $? == 0 ]]; then
-    /etc/e-smith/events/actions/nethserver-backup-config-push2history 
+if [[ $? != 0 ]]; then
+    /usr/libexec/nethserver/backup-config-history push -t cron -d $(date +@%H:%M)
 fi
