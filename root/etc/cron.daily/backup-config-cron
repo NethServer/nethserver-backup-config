@@ -20,10 +20,11 @@
 # along with NethServer.  If not, see COPYING.
 #
 
+# Knowing the execution context could be useful to pre/post backup-config 
+# event actions:
 export BACKUP_CONFIG_CRONJOB=1
 
 BackupDataStatus=$(/sbin/e-smith/config getprop backup-data status)
-
 if [[ "${BackupDataStatus}" == "enabled" ]]; then
     exit 0;
 fi
