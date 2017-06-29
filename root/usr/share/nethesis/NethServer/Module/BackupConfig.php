@@ -84,14 +84,11 @@ class BackupConfig extends \Nethgui\Controller\TableController implements \Nethg
         $this->notifications->defineTemplate('adminTodo', \NethServer\Module\AdminTodo::TEMPLATE, 'bg-yellow');
         if($this->getRequest()->hasParameter('restoreSuccess')) {
             $this->notifications->message($view->translate('restoreSuccess_notification'));
-            $view->getCommandList()->show();
             $view->getCommandList()->sendQuery($view->getModuleUrl('/AdminTodo?notifications'));
         } elseif ($this->getRequest()->hasParameter('restoreFailure')) {
             $taskStatus = $this->systemTasks->getTaskStatus($this->getRequest()->getParameter('taskId'));
             $data = \Nethgui\Module\Tracker::findFailures($taskStatus);
             $this->notifications->trackerError($data);
-        } elseif($this->getRequest()->isValidated()) {
-            $view->getCommandList()->show();
         }
     }
 }
