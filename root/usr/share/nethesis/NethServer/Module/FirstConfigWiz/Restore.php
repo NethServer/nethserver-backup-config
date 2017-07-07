@@ -56,7 +56,7 @@ class Restore extends \Nethgui\Controller\AbstractController implements \Nethgui
     {
         parent::process();
         if($this->getRequest()->isMutation() && $_FILES['arc']['tmp_name']) {
-            $event = 'nethserver-backup-config-restorewizard';
+            $event = 'nethserver-backup-config-restorewizard --mask-unit httpd-admin';
             $actionId = 'Restore_Action_InstallPackages';
             if($this->parameters['InstallPackages'] === 'no') {
                 $event .= ' --no-reinstall';
