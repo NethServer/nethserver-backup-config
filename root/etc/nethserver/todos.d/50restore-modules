@@ -25,11 +25,15 @@ import json
 import sys
 import re
 import subprocess
+import os.path
 
 exit_code = None
 
 try:
     packages = []
+    if not os.path.isfile('/var/lib/nethserver/backup/package-list'):
+        sys.exit(0)
+
     with open('/var/lib/nethserver/backup/package-list') as fp:
         for line in fp:
             packages.append(line.rstrip())

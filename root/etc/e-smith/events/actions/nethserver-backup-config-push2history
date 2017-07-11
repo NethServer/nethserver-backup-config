@@ -28,7 +28,7 @@ if [[ ! -f "${md5file}" ]]; then
 fi
 
 # Do we have the last config backup in our history?
-md5sum /var/lib/nethserver/backup/history/*.tar.xz | grep -q $(cut -f 1 -d ' ' "${md5file}")
+md5sum /var/lib/nethserver/backup/history/*.tar.xz 2>/dev/null | grep -q $(cut -f 1 -d ' ' "${md5file}")
 
 if [[ $? != 0 ]]; then
     /usr/libexec/nethserver/backup-config-history push -t cron -d $(date +@%H:%M)
