@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 1.5.6
+Version: 2.0.0
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -47,6 +47,9 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 %dir %{_nsstatedir}/backup/history
 
 %changelog
+* Wed Jul 12 2017 Davide Principi <davide.principi@nethesis.it> - 2.0.0-1
+- Backup config history - NethServer/dev#5314
+
 * Wed Jun 07 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.6-1
 - Backup data: duplicity fails with "FilePrefixError: +" - Bug NethServer/dev#5309
 
