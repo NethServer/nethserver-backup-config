@@ -18,16 +18,16 @@ Upload an archive.
 Configure
 =========
 
-Every day a scheduled task adds a snaphost to the list if the configuration has
-been changed in the last day. The :guilabel:`Automatic backups to keep` sets how
-many scheduled backups to keep.
+Every day a scheduled task adds a snapshot to the list if the configuration has
+been changed in the last day. The :guilabel:`Automatic backups to keep` slider
+sets how many scheduled backups to keep.
 
 Restore
 =======
 
-Restore the configuration backup item. If the option  :guilabel:`Install
-original modules and restore their configuration` is  unchecked, additional
-modules are not installed automatically.
+Restore the configuration backup item. If the option :guilabel:`Download modules
+automatically` is checked, additional modules are downloaded and installed
+automatically.
 
 
 
