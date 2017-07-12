@@ -24,8 +24,10 @@ namespace NethServer\Module\BackupConfig;
 use Nethgui\System\PlatformInterface as Validate;
 
 
-class Backup extends \Nethgui\Controller\Table\AbstractAction
+class Backup extends \Nethgui\Controller\Table\AbstractAction implements \Nethgui\Component\DependencyConsumer
 {
+    private $error;
+
     public function initialize()
     {
         parent::initialize();
@@ -38,8 +40,29 @@ class Backup extends \Nethgui\Controller\Table\AbstractAction
             $process = $this->getPlatform()->exec('/usr/bin/sudo /sbin/e-smith/backup-config -f');
             if($process->getExitCode() === 0) {
                 $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history push -t snapshot -d ${1}', array($this->parameters['Description']));
+            } else {
+                $this->error = 'Command_backupconfig_failed';
             }
         }
+    }
+
+    public function prepareView(\Nethgui\View\ViewInterface $view)
+    {
+        parent::prepareView($view);
+        if($this->error) {
+            $this->notifications->error($view->translate($this->error));
+        }
+    }
+
+    public function setUserNotifications(\Nethgui\Model\UserNotifications $n)
+    {
+        $this->notifications = $n;
+        return $this;
+    }
+
+    public function getDependencySetters()
+    {
+        return array('UserNotifications' => array($this, 'setUserNotifications'));
     }
 
 }

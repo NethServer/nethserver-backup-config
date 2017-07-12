@@ -46,3 +46,4 @@ $L['InternetConnectionNotAvailable'] = 'There is no connection to software repos
 $L['Reinstall_label'] = 'Restore missing modules';
 $L['Reinstall_Header'] = 'Restore missing modules';
 $L['Reinstall_Description'] = 'Complete the restore procedure by installing additional modules.';
+$L['Command_backupconfig_failed'] = 'The backup was not saved because the "backup-config" command returned an error';
