@@ -31,6 +31,7 @@ if [ -f /var/lib/nethserver/backup/package-list ]; then
        -e 's/^nethserver-snort$/nethserver-suricata/' \
        -e 's/^nethserver-ibays$/nethserver-virtualhosts\nnethserver-samba/' \
        -e '/^nethserver-c-icap$/d' \
+       -e '/^nethserver-ipsec$/d' \
     /var/lib/nethserver/backup/package-list
 
     packages=$(sed ':a;N;$!ba;s/\n/ /g' /var/lib/nethserver/backup/package-list);
