@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# This script is used during upgrade from NS 6 to NS 7.
+# It checks backup configuration and return a code
+# to select the next action in the upgrade process.
+#
+# (WEB UI) If the script is invoked passing a file name argument,
+# the upgrade flag will not be checked and the given
+# file will be used as configuration database.
+#
+
+use constant EXIT_NOTHING_TODO => 0;
+use constant EXIT_ERROR => 1;
+use constant EXIT_POST_RESTORE => 2;
+use constant EXIT_MUST_RESTORE => 3;
+use constant EXIT_NEED_INPUT => 4;
+
+use esmith::ConfigDB;
+my $flag="/var/run/.nethserver-upgrade-configdb";
+
+my $db_file = shift || '';
+
+# Do not check upgrade flag if invoked with a file name argument
+if ( ! -f $db_file) {
+    if ( ! -f $flag ) {
+        exit EXIT_NOTHING_TODO;
+    }
+}
+
+my $db = esmith::ConfigDB->open_ro($db_file);
+
+# Backup data not installed: just execute post-restore-data
+my $backup = $db->get('backup-data') || exit EXIT_POST_RESTORE;
+
+my $vfs = $backup->prop('VFSType') || '';
+my $status = $backup->prop('status') || 'disabled';
+
+# Backup data installed but not configured: ust execute post-restore-data
+if ($vfs eq '') {
+    exit EXIT_POST_RESTORE;
+} else {
+    # Backup data installed, configured and enabled: data restore needed
+    if ($status eq 'enabled') {
+        exit EXIT_MUST_RESTORE;
+    # Backup data installed, configured but disabled: just ask the user
+    } else {
+        exit EXIT_NEED_INPUT;
+    }
+}
+
+# Uknonw condition, should not be reached
+exit EXIT_ERROR;
+
