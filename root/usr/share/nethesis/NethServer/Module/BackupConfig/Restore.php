@@ -71,7 +71,7 @@ class Restore extends \Nethgui\Controller\Table\RowAbstractAction
         if($this->getRequest()->isMutation()) {
             $this->getPlatform()->setDetachedProcessCondition('success', array(
                 'location' => array(
-                    'url' => $view->getModuleUrl('/BackupConfig?restoreSuccess'),
+                    'url' => $view->getModuleUrl('/BackupConfig?restoreSuccess&AdminTodo[notifications]=1'),
                     'freeze' => TRUE,
             )));
             $this->getPlatform()->setDetachedProcessCondition('failure', array(
