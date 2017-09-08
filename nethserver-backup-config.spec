@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 2.0.1
+Version: 2.0.2
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -47,6 +47,10 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 %dir %{_nsstatedir}/backup/history
 
 %changelog
+* Fri Sep 08 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.2-1
+- CSRF and XSS vulnerabilities in server manager - Bug NethServer/dev#5345
+- NS 6 upgrade: avoid restore-data when possible - NethServer/dev#5343
+
 * Mon Jul 24 2017 Davide Principi <davide.principi@nethesis.it> - 2.0.1-1
 - Do not try to reinstall existing dependencies -- #22
 
