@@ -48,6 +48,7 @@ event_actions($event, qw(
     adjust-fixnetwork-flag 01
     interface-update-cond 70
     system-adjust 70
+    nethserver-backup-config-setreinstallflag 75
     nethserver-backup-config-clearupgradeflag-cond 99
 ));
 
