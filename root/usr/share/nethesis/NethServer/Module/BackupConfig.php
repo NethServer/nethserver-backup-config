@@ -52,7 +52,6 @@ class BackupConfig extends \Nethgui\Controller\TableController implements \Nethg
             ->addRowAction(new BackupConfig\Restore())
             ->addRowAction(new BackupConfig\Download())
             ->addRowAction(new BackupConfig\Delete('delete'))
-            ->addChild(new BackupConfig\Reinstall())
         ;
 
         parent::initialize();
