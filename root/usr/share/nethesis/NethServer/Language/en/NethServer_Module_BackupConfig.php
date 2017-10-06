@@ -34,6 +34,7 @@ $L['Restore_Header'] = 'Restore "${0}"';
 $L['valid_platform,config-backup-upload,valid-nsconfbackup,4'] = 'The uploaded file is empty';
 $L['valid_platform,config-backup-upload,valid-nsconfbackup,3'] = 'The uploaded file does not seem a valid backup file';
 $L['valid_platform,config-backup-upload,valid-nsconfbackup,1'] = 'No file was uploaded';
+
 $L['original_ts_label'] = 'Backup date';
 $L['push_ts_label'] = 'Push date';
 $L['disk_ts_label'] = 'File date';
@@ -41,9 +42,7 @@ $L['size_label'] = 'Size';
 $L['ProductName_label'] = 'Product';
 $L['Version_label'] = 'Version';
 $L['Release_label'] = 'Release';
+
 $L['restoreSuccess_notification'] = 'The system configuration has been restored';
 $L['InternetConnectionNotAvailable'] = 'There is no connection to software repositories. The restore procedure will skip the installation of additional modules.';
-$L['Reinstall_label'] = 'Restore missing modules';
-$L['Reinstall_Header'] = 'Restore missing modules';
-$L['Reinstall_Description'] = 'Complete the restore procedure by installing additional modules.';
 $L['Command_backupconfig_failed'] = 'The backup was not saved because the "backup-config" command returned an error';
