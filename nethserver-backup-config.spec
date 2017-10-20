@@ -45,6 +45,7 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 %dir %{_nseventsdir}/%{name}-update
 %dir %{_nsstatedir}/backup
 %dir %{_nsstatedir}/backup/history
+%config %attr(440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_backup_config
 
 %changelog
 * Fri Oct 06 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.0.3-1
@@ -127,4 +128,3 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 
 * Wed Jan 30 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 0.9.0-1
 - Fist testing release
-
