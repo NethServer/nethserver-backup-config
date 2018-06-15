@@ -9,6 +9,7 @@ URL: %{url_prefix}/%{name}
 BuildArch: noarch
 BuildRequires: nethserver-devtools
 Requires: tar
+Requires: perl-Proc-ProcessTable
 Requires: nethserver-base
 
 %description

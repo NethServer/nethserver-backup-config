@@ -25,6 +25,7 @@ use warnings;
 use Locale::gettext;
 use esmith::I18N;
 use Sys::Hostname;
+use Proc::ProcessTable;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
@@ -450,23 +451,15 @@ Return 1 if process is running, 0 otherwise.
 sub is_running {
     my $self = shift;
     my $target_name = shift || return 0;
-    my $process_pid = -1;
-    my $status;
+    my $full_match = shift || 0;
 
-    opendir (my $proc_dir, "/proc/") or die ("Cannot open \"/proc/\"\n");
-
-    while (my $pid = readdir ($proc_dir))
-    {
-        if ($pid =~ m/^[0-9]+$/ && $pid != $$) # search for integer pid except for the current one
-        {
-            open(FILE, "/proc/$pid/comm") or next;
-            my $command_name = <FILE>;
-            chomp ($command_name); #remove trailing new line
-            if ($command_name eq $target_name) {
-                closedir($proc_dir);
-                close(FILE);
-                return 1;
-            }
+    my $t = Proc::ProcessTable->new;
+    foreach my $p ( @{$t->table} ){
+        next if ($p->pid == $$); # skip running process
+        if ($full_match) {
+            return 1 if ($p->cmndline =~ /$target_name/);
+        } else {
+            return 1 if ($p->fname eq $target_name);
         }
     }
 
