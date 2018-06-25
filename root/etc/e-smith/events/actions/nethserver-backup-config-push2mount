@@ -25,8 +25,8 @@ SystemName=$(/sbin/e-smith/config get SystemName)
 dest="${Mount}/${SystemName}"
 
 if [[ ! -d "${dest}" ]]; then
-    echo "[ERROR] destination directory does not exist ${dest}"
-    exit 1
+    echo "[WARNING] destination directory does not exist ${dest}"
+    exit 0
 fi
 
 cp --force /var/lib/nethserver/backup/backup-config.tar.xz "${dest}"
