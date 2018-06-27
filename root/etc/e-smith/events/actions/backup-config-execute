@@ -48,10 +48,10 @@ sub filter_excludes {
 sub do_backup {
    my ( $backup, $include, $exclude) = @_;
    if ( $backup->backup_config($include, $exclude) == 0) {
-       chmod(0640,NethServer::BackupConfig::DESTINATION);
-       system("/usr/libexec/nethserver/backup-config-md5 ".NethServer::BackupConfig::DESTINATION);
+       chmod(0640,$backup->get_destination());
+       system("/usr/libexec/nethserver/backup-config-md5 ".$backup->get_destination());
    } else {
-       $backup->logger('ERROR',"Can't create tar file.");
+       print("Can't create tar file.");
        exit 1;
    }
 }
@@ -83,10 +83,10 @@ sub same_files {
 }
 
 my $backup = new NethServer::BackupConfig();
-my @exclude_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
+my @exclude_files = $backup->excludes($backup->get_config_dir());
 
 # Read include and exclude from config directory
-my @files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
+my @files = $backup->includes($backup->get_config_dir());
 my @include_files = ();
 for my $file (@files) {
     if ( -e $file) {
@@ -95,18 +95,18 @@ for my $file (@files) {
 }
 
 if (!@include_files) {
-    $backup->logger('ERROR',"FATAL: no file in backup list - 1");
+    print("No file in backup list");
     exit 1;
 }
    
-my $md5_content = NethServer::BackupConfig::DESTINATION."-content.md5";
+my $md5_content = $backup->get_destination()."-content.md5";
 my $cmd = "/usr/bin/md5sum --status -c $md5_content 2>/dev/null";
 
 # Execute backup if:
 #  * backup file does not exist
 #  * file list is changed 
 #  * md5sum doesn't match (file contents is changed)
-if ( ! -e NethServer::BackupConfig::DESTINATION ||
+if ( ! -e $backup->get_destination() ||
     ! -e $md5_content ||
     ! same_files($md5_content, \@include_files) ||
     system($cmd) != 0 ) {

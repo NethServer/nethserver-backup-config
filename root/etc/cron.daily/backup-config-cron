@@ -30,7 +30,7 @@ if [[ "${BackupDataStatus}" == "enabled" ]]; then
 fi
 
 # Run the backup configuration
-/sbin/e-smith/backup-config
+/sbin/e-smith/backup-config > /dev/null
 
 if [[ $? == 0 ]]; then
     /etc/e-smith/events/actions/nethserver-backup-config-push2history 

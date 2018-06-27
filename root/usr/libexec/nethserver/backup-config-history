@@ -76,7 +76,8 @@ sub command_help
 # push the current backup into the history
 sub command_push
 {
-    my $sourceFile = $opts{'f'} || NethServer::BackupConfig::DESTINATION;
+    my $backup = new NethServer::BackupConfig();
+    my $sourceFile = $opts{'f'} || $backup->get_destination();
     my $archiveElement = _get_freeArchiveElement($opts{'t'});
 
     if(!$archiveElement) {
@@ -100,6 +101,7 @@ sub command_push
 
 sub command_pull
 {
+    my $backup = new NethServer::BackupConfig();
     my $archiveElement;
     if($opts{'i'}) {
         $archiveElement = sprintf('%s/%02s.tar.xz', $historyDir, $opts{'i'});
@@ -116,9 +118,9 @@ sub command_pull
         system(qw(cp -p), $archiveElement, $opts{'f'});
         system(qw(chown srvmgr:adm), $opts{'f'});
     } else {
-        system(qw(cp -p), $archiveElement, NethServer::BackupConfig::DESTINATION);
-        unlink(NethServer::BackupConfig::DESTINATION . '.md5');
-        unlink(NethServer::BackupConfig::DESTINATION . '-content.md5');
+        system(qw(cp -p), $archiveElement, $backup->get_destination());
+        unlink($backup->get_destination() . '.md5');
+        unlink($backup->get_destination() . '-content.md5');
     }
 
 }
