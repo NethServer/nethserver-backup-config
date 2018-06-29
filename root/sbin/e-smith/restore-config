@@ -51,19 +51,17 @@ if ($reinstall) {
 }
 $tasks{'post'} = $tracker->declare_task('Reconfiguring system', 8.0);
 
-$backup->set_log_file("/var/log/restore-config.log");
+out("Restore config started");
 
-$backup->logger("START","Restore config started");
-
-if ( ! -f NethServer::BackupConfig::DESTINATION ) {
+if ( ! -f $backup->get_destination() ) {
     $ENV{'PTRACK_TASKID'} = $tasks{'extract'};
     $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Extract');
     my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
     my $bd = $conf->get('backup-data') || die("Could not open backup data to retrieve configuration backup");
     my $program = $bd->prop('Program') || 'duplicity';
-    if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".NethServer::BackupConfig::DESTINATION)) {
+    if ($status = system("/etc/e-smith/events/actions/restore-config-$program ".$backup->get_destination())) {
         $tracker->set_task_done($tasks{'extract'}, "No configuration backup file found or can't extract from data backup", 1);
-        $backup->bad_exit("No configuration backup file found or can't extract from data backup");
+        error("No configuration backup file found or can't extract from data backup");
     }
 }
 $tracker->set_task_done($tasks{'extract'}, 0);
@@ -73,28 +71,29 @@ $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Pre-restore');
 if ($status = system("/sbin/e-smith/signal-event pre-restore-config"))
 {
     $tracker->set_task_done($tasks{'extract'}, "Event pre-restore-config failed", 1);
-    $backup->bad_exit("Event pre-restore-config failed", $status);
+    error("Event pre-restore-config: FAIL");
 }
 $tracker->set_task_done($tasks{'pre'}, '', 0);
-$backup->logger("STEP","pre-restore-config done");
+out("Event pre-restore-config: SUCCESS");
 
 $tracker->set_task_progress($tasks{'execute'}, 0.1, 'Restore');
 if ($status = system("/etc/e-smith/events/actions/restore-config-execute"))
 {
     $tracker->set_task_done($tasks{'execute'}, "Action restore-config-execute failed", 1);
-    $backup->bad_exit("Action restore-config-execute failed", $status);
+    error("Action restore-config-execute: FAIL");
 }
 $tracker->set_task_done($tasks{'execute'}, '', 0);
-$backup->logger("STEP","restore-config-execute done");
+out("Action restore-config-execute: SUCCESS");
+
 
 if ($reinstall) {
     $tracker->set_task_progress($tasks{'reinstall'}, 0.1, 'Reinstalling packages');
     if ($status = system("/etc/e-smith/events/actions/restore-config-reinstall"))
     {
-        $tracker->set_task_done($tasks{'reinstall'}, "Action restore-config-reinstall failed", 1);
+        $tracker->set_task_done($tasks{'reinstall'}, "Action restore-config-reinstall: FAIL");
         # do not break in case of error, keep goining with the post-restore-config
     }
-    $backup->logger("STEP","restore-config-reinstall done");
+    out("Action restore-config-reinstall: SUCCESS");
 }
 
 $ENV{'PTRACK_TASKID'} = $tasks{'post'};
@@ -104,10 +103,22 @@ $status = system("/sbin/e-smith/signal-event post-restore-config");
 system('/usr/bin/systemctl', 'unmask', '--runtime', @mask_units);
 if($status != 0) {
     $tracker->set_task_done($tasks{'post'}, "Event post-restore-config failed", 1);
-    $backup->bad_exit("Event post-restore-config failed", $status);
+    error("Event post-restore-config: FAIL");
 }
 $tracker->set_task_done($tasks{'post'}, '', 0);
 
-$backup->logger("SUCCESS","Restore config done");
+out("Event post-restore-config: SUCCESS");
 
 exit 0;
+
+sub out {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+}
+
+sub error {
+    out(@_);
+    out("Restore status: FAIL");
+    exit 1;
+}
+

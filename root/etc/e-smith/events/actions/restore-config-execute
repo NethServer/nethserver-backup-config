@@ -24,12 +24,11 @@ use strict;
 use NethServer::BackupConfig;
 
 my $backup = new NethServer::BackupConfig();
-$backup->set_log_file("/var/log/restore-config.log");
 
-my $ret = system("tar -C / -xf ".NethServer::BackupConfig::DESTINATION);
+my $ret = system("tar -C / -xf ".$backup->get_destination());
 
 if ($ret != 0) {
-   $backup->bad_exit("Error during restore",$ret);
+   die("Error during restore");
 }
 
 

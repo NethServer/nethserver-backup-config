@@ -22,9 +22,9 @@ package NethServer::Backup;
 
 use strict;
 use warnings;
-use Locale::gettext;
 use esmith::I18N;
 use Sys::Hostname;
+use Proc::ProcessTable;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
@@ -53,66 +53,28 @@ This is the class constructor.
 sub new
 {
     my $class = shift;
-    my $notify = shift || 'never';
-    my $notify_to = shift || '';
-    my $notify_from = shift || 'root';
+    my $config_dir = shift || '';
     my $self = {
-        _notify => $notify,
-        _notify_to => $notify_to,
-        _notify_from => $notify_from,
+        config_dir => $config_dir,
     };
-    $self = bless $self, $class;
 
-    my $i18n = new esmith::I18N;
-    $i18n->setLocale("nethserver-backup");
+    $self = bless $self, $class;
 
     return $self;
 }
 
+=head2 get_config_dir
 
-
-=head2 logger
-
-Take a tag and a message.
-Write a log line to  _log_file file.
-Each line is in the form: DATE HOUR - tag - message
+Return the configuration directory.
 
 =cut
 
-sub logger
+sub get_config_dir
 {
-    use POSIX qw/strftime/;
-    my ($self, $tag, $message) = @_;
-    return unless defined($self->{_log_file});
-    open(FILE, ">>".$self->{_log_file});
-    print FILE strftime('%F %T',localtime)." - $tag - $message\n";
-    close(FILE);
+   my $self = shift;
+   return $self->{'config_dir'};
 }
 
-=head2 logger
-
-Take a message.
-Write a localized notification line to  _notification_file file.
-
-=cut
-
-sub notify
-{
-    use POSIX qw/strftime/;
-    my ($self, $message) = @_;
-    shift @_;
-    shift @_;
-    return unless ($self->{_notify} ne 'never');
-    return unless ($self->{_notify_to} ne '');
-    return unless defined($self->{_notification_file});
-
-    my $i18n = new esmith::I18N;
-    $i18n->setLocale("nethserver-backup");
-   
-    open(FILE, ">>".$self->{_notification_file});
-    print FILE sprintf(gettext($message)."\n",@_);
-    close(FILE);
-}
 
 
 =head2 uniq
@@ -150,81 +112,6 @@ sub bad_exit
     exit(1);
 }
 
-
-=head2 cleanup_notification
-
-Remove existing notification file.
-
-=cut
-
-sub cleanup_notification
-{
-    my ($self) = @_;
-    unlink $self->{_notification_file};
-}
-
-=head2 send_notification
-
-Send notification if notify type is 'always'.
-
-=cut
-
-sub send_notification
-{
-    my ($self, $is_error, $log) = @_;
-    if ($self->{_notify} eq "always")  {
-        $self->_send_notification($is_error, $log);
-    }
-}
-
-sub _send_notification
-{
-    my ($self, $is_error, $log) = @_;
-    my $content;
-    my $status;
-
-    return unless(-f $self->{_notification_file});
-
-    open(my $fh, '<', $self->{_notification_file}) or $self->logger("NOTIFY","Can't read notification file");
-    {
-        local $/;
-        $content = <$fh>;
-    }
-    close($fh);
-
-    $content .= "\n\n\n".sprintf(gettext('Extract from log file %s'),$self->{_log_file}).":\n\n";
-    $content .= $self->_extract_log();
-    $content .= "\n";
-    if (defined($log) && -f $log) {
-        $content .= "\n\n\n".sprintf(gettext('Extract from log file %s'),$log).":\n\n";
-        open (FILE, $log);
-        while (<FILE>) {
-            $content.=$_;
-        }
-        close FILE;
-        $content .= "\n";
-    }
-   
-    my $i18n = new esmith::I18N;
-    $i18n->setLocale("nethserver-backup");
-    
-    if ($is_error) {
-        $status = ": ".gettext("ERROR");
-    } else {
-        $status = ": ".gettext("SUCCESS");
-    }
-
-    my $host = hostname;
-    my $sender = $self->{_notify_from};
-    open(MAIL, "|/usr/sbin/sendmail -t -f $sender");
-    print MAIL "To: ".$self->{_notify_to}."\n";
-    print MAIL "From: $sender\n";
-    print MAIL "Subject: ".gettext('Backup report') . " [$host]" .$status."\n\n";
-    print MAIL $content;
-    close(MAIL);
-
-    unlink $self->{_notification_file};
-}
 
 =head2 load_file_list
 
@@ -347,97 +234,6 @@ sub is_mounted
 }
 
 
-=head2 get_log_file
-
-Returns the current log file name.
-
-=cut
-
-sub get_log_file 
-{
-    my $self = shift;
-    return $self->{_log_file};
-}
-
-=head2 set_log_file
-
-Takes a file name.
-Set the current log file name.
-
-=cut
-
-sub set_log_file 
-{
-    my $self = shift;
-    my $file = shift;
-    $self->{_log_file} = $file;
-}
-
-=head2 get_notification_file
-
-Returns the current notification file name.
-
-=cut
-
-sub get_notification_file 
-{
-    my $self = shift;
-    return $self->{_notification_file};
-}
-
-=head2 set_notification_file
-
-Takes a file name.
-Set the current notification file name.
-
-=cut
-
-sub set_notification_file 
-{
-    my $self = shift;
-    my $file = shift;
-    $self->{_notification_file} = $file;
-}
-
-=head2 count_log_lines
-
-Count lines of log file
-
-=cut
-
-sub _count_log_lines 
-{
-    my $self = shift;
-    my $lines = 0;
-    open (FILE, $self->{_log_file}) or return 0;
-    $lines++ while (<FILE>);
-    close FILE;
-    return $lines;
-}
-
-
-=head2 extract_log
-
-Return log file content starting from line _log_lines
-
-=cut
-
-sub _extract_log
-{
-    my $self = shift;
-    my $ret = "";
-    my $lines = 0;
-    open (FILE, $self->{_log_file}) or return "";
-    while (<FILE>) {
-        $lines++;
-        if($lines > $self->{_log_lines}) {
-            $ret.=$_;
-        }
-    }
-    close FILE;
-    return $ret;
-}
-
 =head2 is_running
 
 Check if a process is running.
@@ -450,23 +246,15 @@ Return 1 if process is running, 0 otherwise.
 sub is_running {
     my $self = shift;
     my $target_name = shift || return 0;
-    my $process_pid = -1;
-    my $status;
+    my $full_match = shift || 0;
 
-    opendir (my $proc_dir, "/proc/") or die ("Cannot open \"/proc/\"\n");
-
-    while (my $pid = readdir ($proc_dir))
-    {
-        if ($pid =~ m/^[0-9]+$/ && $pid != $$) # search for integer pid except for the current one
-        {
-            open(FILE, "/proc/$pid/comm") or next;
-            my $command_name = <FILE>;
-            chomp ($command_name); #remove trailing new line
-            if ($command_name eq $target_name) {
-                closedir($proc_dir);
-                close(FILE);
-                return 1;
-            }
+    my $t = Proc::ProcessTable->new;
+    foreach my $p ( @{$t->table} ){
+        next if ($p->pid == $$); # skip running process
+        if ($full_match) {
+            return 1 if ($p->cmndline =~ /$target_name/);
+        } else {
+            return 1 if ($p->fname eq $target_name);
         }
     }
 

@@ -27,12 +27,6 @@ use NethServer::Backup;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
-use constant LOG_FILE => "/var/log/backup-config.log";
-use constant NOTIFICATION_FILE => "/tmp/backup-config-notification";
-use constant CONF_DIR => "/etc/backup-config.d/";
-use constant DESTINATION => "/var/lib/nethserver/backup/backup-config.tar.xz";
-
-
 @ISA = qw(NethServer::Backup);
 
 =head1 NAME
@@ -43,6 +37,8 @@ NethServer::Backup - interface backup/restore of configuration
 
     use NethServer::BackupConfig;
     my $backup = new NethServer::BackupConfig();
+    print $backup->conf_dir;
+    print $backup->destination;
 
 
 =head1 DESCRIPTION
@@ -53,23 +49,18 @@ This module provides an interface to the backup/restore of configuration
 
 =head2 new
 
-This is the class constructor which sets the log file.
+This is the class constructor which sets the configuration directory and destination.
 
 =cut
 
 sub new
 {
     my $class = shift;
-    my $notify = shift || 'error';
-    my $notify_to = shift || 'root@localhost';
     my $self = {
-        _log_file => LOG_FILE,
-        _notify => $notify,
-        _notify_to => $notify_to,
-        _notification_file => NOTIFICATION_FILE,
+        config_dir => "/etc/backup-config.d/",
+        destination => "/var/lib/nethserver/backup/backup-config.tar.xz"
     };
     $self = bless $self, $class;
-    $self->{_log_lines} = $self->_count_log_lines();
     return $self;
 }
 
@@ -78,7 +69,7 @@ sub new
 =head2 backup_config
 
 Takes two array: a list of files to be included and a list of files to be excluded.
-Create an archive (tar.xz) file in BACKUP_CONFIG_DESTINATION.
+Create an archive (tar.xz) file in destination.
 
 =cut
 
@@ -89,15 +80,28 @@ sub backup_config
    print $fh join("\n",@{$exclude_files});
    my $fhi = File::Temp->new( UNLINK => 1);
    print $fhi join("\n",@{$include_files});
-   my $cmd = "/bin/tar cpJf ".DESTINATION." -X ".$fh->filename." -T ".$fhi->filename." 2>/dev/null";
+   my $cmd = "/bin/tar cpJf ".$self->{'destination'}." -X ".$fh->filename." -T ".$fhi->filename." 2>/dev/null";
    my $return = system($cmd);
    return 0 unless ($return > 0);
    $return = $return>>8;
    if ($return == 2) { #ignore non-existing file errors
        return 0;
    }
-   $self->logger("ERROR", "Command was: $cmd");
    return $return;
+}
+
+
+
+=head2 get_destination
+
+Return the destination file name.
+
+=cut
+
+sub get_destination
+{
+   my $self = shift;
+   return $self->{'destination'};
 }
 
 

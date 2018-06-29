@@ -1,0 +1,12 @@
+{
+    #
+    # Issue 5538
+    # - remove unused notify props from backup-config
+    #
+
+    $DB->get_prop_and_delete('backup-config','notify');
+    $DB->get_prop_and_delete('backup-config','notifyFrom');
+    $DB->get_prop_and_delete('backup-config','notifyTo');
+
+    '';
+}
