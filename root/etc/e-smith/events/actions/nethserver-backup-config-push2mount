@@ -25,7 +25,6 @@ SystemName=$(/sbin/e-smith/config get SystemName)
 dest="${Mount}/${SystemName}"
 
 if [[ ! -d "${dest}" ]]; then
-    echo "[WARNING] destination directory does not exist ${dest}"
     exit 0
 fi
 
