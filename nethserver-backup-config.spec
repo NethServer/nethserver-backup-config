@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 2.1.0
+Version: 2.2.0
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -49,6 +49,9 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 %config %attr(440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_backup_config
 
 %changelog
+* Tue Aug 28 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.0-1
+- Backup-data: multiple schedule and backends - NethServer/dev#5538
+
 * Thu May 17 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.1.0-1
 - Change of defaults for NS 7.5 - NethServer/dev#5490
 
