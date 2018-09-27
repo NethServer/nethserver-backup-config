@@ -128,7 +128,7 @@ sub load_file_list
     while (<FILE>) {
         # skip empty lines by matching any non-whitespace char
         next unless /\S/;
-        chop($_);
+        $_ =~ s/\s+$//;
         push(@paths, $_);
     }
     close(FILE);
