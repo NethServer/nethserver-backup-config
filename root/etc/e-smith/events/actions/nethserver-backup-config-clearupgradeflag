@@ -23,7 +23,7 @@
 flag=/var/run/.nethserver-upgrade-configdb
 
 if [[ -f ${flag} ]]; then
-    echo "[NOTICE] end of upgrade from version ${Version}"
+    echo "[NOTICE] end of upgrade"
     rm -f ${flag};
 fi
 
