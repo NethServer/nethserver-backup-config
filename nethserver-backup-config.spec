@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 2.2.1
+Version: 2.2.2
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -49,6 +49,9 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 %config %attr(440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_backup_config
 
 %changelog
+* Tue Dec 11 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.2-1
+- Cockpit Alpha 1 - NethServer/dev#5660
+
 * Fri Sep 28 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.1-1
 - Backup data fails if include files don't contain a new line  - Bug NethServer/dev#5590
 
