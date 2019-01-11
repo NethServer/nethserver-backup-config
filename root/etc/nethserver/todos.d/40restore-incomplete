@@ -52,7 +52,7 @@ elif(exit_code == 4):
             "label": gettext.gettext('Do not reboot the system! Restore procedure is incomplete'),
             "url": "/BackupData"
         },
-        "text": gettext.gettext('Either enable backup and run "restore-data" or complete the restore procedure by running the "signal-event post-restore-data" command from a root shell'),
+        "text": gettext.gettext('Either enable backup and run "restore-data" or complete the restore procedure by running the "signal-event post-restore-data <backup-name>" command from a root shell'),
         "icon": "hand-paper-o"
     }
     json.dump(msg, sys.stdout)
