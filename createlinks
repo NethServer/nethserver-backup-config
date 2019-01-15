@@ -81,7 +81,6 @@ event_actions('nethserver-backup-config-restorewizard', qw(
 
 event_actions('post-backup-data', qw(
     nethserver-backup-config-push2history 20
-    nethserver-backup-config-push2mount 20
 ));
 
 event_actions('pre-backup-data', qw(

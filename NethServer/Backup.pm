@@ -226,7 +226,7 @@ sub is_mounted
     open FD, '/proc/mounts';
     while (<FD>)
     {
-        next unless /\s+$dir\s+/;
+        next unless /\s?$dir\s+/;
         $err++;
     }
     close FD;

@@ -38,7 +38,7 @@ use constant EXIT_NEED_INPUT => 4;
 use esmith::ConfigDB;
 my $flag="/var/run/.nethserver-upgrade-configdb";
 
-my $db_file = shift || '';
+my $db_file = shift || 'backups';
 
 # Do not check upgrade flag if invoked with a file name argument
 if ( ! -f $db_file) {
@@ -50,22 +50,23 @@ if ( ! -f $db_file) {
 my $db = esmith::ConfigDB->open_ro($db_file);
 
 # Backup data not installed: just execute post-restore-data
-my $backup = $db->get('backup-data') || exit EXIT_POST_RESTORE;
+my @backups = $db->get_all();
+my $nbackups = scalar @backups;
+exit EXIT_POST_RESTORE if ($nbackups eq 0);
 
-my $vfs = $backup->prop('VFSType') || '';
-my $status = $backup->prop('status') || 'disabled';
-
-# Backup data installed but not configured: ust execute post-restore-data
-if ($vfs eq '') {
-    exit EXIT_POST_RESTORE;
-} else {
-    # Backup data installed, configured and enabled: data restore needed
+my $must_restore = 0;
+foreach (@backups) {
+    my $status = $_->prop('status') || next;
     if ($status eq 'enabled') {
-        exit EXIT_MUST_RESTORE;
-    # Backup data installed, configured but disabled: just ask the user
-    } else {
-        exit EXIT_NEED_INPUT;
+        $must_restore = 1;
     }
+}
+
+# Backup data installed, configured and enabled: data restore needed
+if ($must_restore eq 'enabled') {
+    exit EXIT_MUST_RESTORE;
+} else { # Backup data installed, configured but disabled: just ask the user
+    exit EXIT_NEED_INPUT;
 }
 
 # Uknonw condition, should not be reached
