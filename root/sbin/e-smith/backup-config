@@ -54,7 +54,7 @@ $tasks{'pre'} = $tracker->declare_task('Preparing backup');
 $tasks{'execute'} = $tracker->declare_task('Executing backup');
 $tasks{'post'} = $tracker->declare_task('Cleaning up system');
 
-out("===== Report for configuration backup =====\n");
+out("===== Report for configuration backup =====");
 
 my $start = time;
 out("Backup started at %s", strftime('%F %T',localtime));
