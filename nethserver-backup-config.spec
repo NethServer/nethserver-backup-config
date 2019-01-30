@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 2.2.2
+Version: 2.3.0
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -49,6 +49,9 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 %config %attr(440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_backup_config
 
 %changelog
+* Wed Jan 30 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.3.0-1
+- Remove single backup data - NethServer/dev#5691
+
 * Tue Dec 11 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.2.2-1
 - Cockpit Alpha 1 - NethServer/dev#5660
 
