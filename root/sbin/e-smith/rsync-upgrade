@@ -115,6 +115,9 @@ if [ $sync_only -eq 1 ]; then
     echo "/root/.ssh" >> $exclude_f
 fi
 
+# Avoid deleting backup history directory
+echo "/var/lib/nethserver/backup/history" >> $exclude_f
+
 # Execute the sync
 rsync -azvr --delete --files-from=$include_f --exclude-from=$exclude_f -e "$ssh_cmd" root@$target:/ /
 
