@@ -20,6 +20,17 @@
 # along with NethServer.  If not, see COPYING.
 #
 
+while (( $# > 0 )); do
+    if [[ $1 == '--no-reinstall' ]]; then
+        no_reinstall=1
+    fi
+    shift
+done
+
+if [[ -n ${no_reinstall} ]]; then
+    exit 0
+fi
+
 packagelist_path=/var/lib/nethserver/backup/package-list
 backup_path=/var/lib/nethserver/backup/backup-config.tar.xz
 
