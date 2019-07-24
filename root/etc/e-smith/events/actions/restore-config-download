@@ -1,6 +1,7 @@
 #!/bin/bash
+
 #
-# Copyright (C) 2017 Nethesis S.r.l.
+# Copyright (C) 2019 Nethesis S.r.l.
 # http://www.nethesis.it - nethserver@nethesis.it
 #
 # This script is part of NethServer.
@@ -16,19 +17,28 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+# along with NethServer.  If not, see COPYING.
 #
 
-packagelist_path=/var/lib/nethserver/backup/package-list
+while (( $# > 0 )); do
+    if [[ $1 == '--no-reinstall' ]]; then
+        no_reinstall=1
+    fi
+    shift
+done
 
-if [ ! -f ${packagelist_path} ]; then
-    echo "[WARNING] restore-config-reinstall: package-list not found, skipped"
+if [[ -n ${no_reinstall} ]]; then
     exit 0
 fi
 
-# Migrate packages from NS 6 to NS 7
-# See: http://docs.nethserver.org/en/v7/release_notes.html#discontinued-packages
-sed -i -f /etc/nethserver/ns6upgrade-package-list.sed ${packagelist_path}
+packagelist_path=/var/lib/nethserver/backup/package-list
+backup_path=/var/lib/nethserver/backup/backup-config.tar.xz
 
-packages=$(sed ':a;N;$!ba;s/\n/ /g' ${packagelist_path});
-yum --disableplugin=nethserver_events install -y $packages
+packages=($(tar -x -O -f ${backup_path} ${packagelist_path:1} | sed -f /etc/nethserver/ns6upgrade-package-list.sed))
+
+if (( ${#packages[@]} == 0 )); then
+    echo "[WARNING] no packages listed for download"
+    exit 0
+fi
+
+yum -y --downloadonly install "${packages[@]}"

@@ -61,7 +61,7 @@ $tracker->set_task_done($tasks{'extract'}, 0);
 
 $ENV{'PTRACK_TASKID'} = $tasks{'pre'};
 $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Pre-restore');
-if ($status = system('/sbin/e-smith/signal-event', 'pre-restore-config'))
+if ($status = system('/sbin/e-smith/signal-event', 'pre-restore-config', $reinstall ? '--reinstall' : '--no-reinstall'))
 {
     $tracker->set_task_done($tasks{'pre'}, "", 1);
     error("Event pre-restore-config: FAIL");

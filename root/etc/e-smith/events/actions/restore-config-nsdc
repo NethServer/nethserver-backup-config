@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2019 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+# This is an ad-hoc script to download nethserver-dc required RPMs that would be
+# otherwise ignored by "restore-config-download". Keep it up-to-date with
+# "nethserver-dc-install"!
+
+nsroot=/var/lib/machines/nsdc
+tmprpm=$(mktemp --tmpdir -t ns-samba-XXXXXXXXX.x86_64.rpm)
+
+trap "rm -rf ${tmprpm}" EXIT
+
+if [[ -d ${nsroot}/etc/yum/var ]]; then
+    echo "[WARNING] the nethserver-dc package seems to be already installed" 1>&2
+    exit 0
+fi
+
+nsdc_package=$(find /var/cache/yum -name nethserver-dc*.rpm)
+if [[ -f ${nsdc_package} ]]; then
+    rpm2cpio ${nsdc_package} | cpio -i --to-stdout './usr/lib/nethserver-dc/ns-samba-*.x86_64.rpm' > ${tmprpm}
+    mkdir -p ${nsroot}/etc/yum/vars
+    mkdir -p ${nsroot}/var/log/journal
+    mkdir -p ${nsroot}/etc/systemd/network
+    cp -f /etc/yum/vars/* ${nsroot}/etc/yum/vars
+    rpm --root=${nsroot} --import /etc/pki/rpm-gpg/*
+    yum -y --releasever=/ --installroot=${nsroot} --downloadonly install ${tmprpm} centos-release systemd-networkd bind-utils ntp
+    if [[ $? != 0 ]]; then
+        echo "[ERROR] failed to download nsdc packages" 1>&2
+        rm -rf ${nsroot}
+        exit 1
+    fi
+    rm -f ${nsroot}/etc/krb5.conf
+fi
+
