@@ -41,14 +41,7 @@ $event = "nethserver-backup-config-save";
 #--------------------------------------------------
 
 event_actions('pre-restore-config', qw(
-    restore-config-checkupdate 80
-));
-
-#--------------------------------------------------
-# actions for pre-restore-config event
-#--------------------------------------------------
-
-event_actions('pre-restore-config', qw(
+    restore-config-checkupdate 20
     restore-config-download 25
     restore-config-nsdc 30
 ));
