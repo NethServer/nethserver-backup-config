@@ -61,14 +61,15 @@ $tracker->set_task_done($tasks{'extract'}, 0);
 
 $ENV{'PTRACK_TASKID'} = $tasks{'pre'};
 $tracker->set_task_progress($tasks{'pre'}, 0.1, 'Pre-restore');
-if ($status = system("/sbin/e-smith/signal-event pre-restore-config"))
+if ($status = system('/sbin/e-smith/signal-event', 'pre-restore-config'))
 {
-    $tracker->set_task_done($tasks{'extract'}, "Event pre-restore-config failed", 1);
+    $tracker->set_task_done($tasks{'pre'}, "", 1);
     error("Event pre-restore-config: FAIL");
 }
 $tracker->set_task_done($tasks{'pre'}, '', 0);
 out("Event pre-restore-config: SUCCESS");
 
+$ENV{'PTRACK_TASKID'} = $tasks{'execute'};
 $tracker->set_task_progress($tasks{'execute'}, 0.1, 'Restore');
 if ($status = system("/etc/e-smith/events/actions/restore-config-execute"))
 {
@@ -80,6 +81,7 @@ out("Action restore-config-execute: SUCCESS");
 
 
 if ($reinstall) {
+    $ENV{'PTRACK_TASKID'} = $tasks{'reinstall'};
     $tracker->set_task_progress($tasks{'reinstall'}, 0.1, 'Reinstalling packages');
     if ($status = system("/etc/e-smith/events/actions/restore-config-reinstall"))
     {
@@ -95,7 +97,7 @@ system('/usr/bin/systemctl', 'mask', '--runtime', @mask_units);
 $status = system("/sbin/e-smith/signal-event", "post-restore-config", @remap_interfaces);
 system('/usr/bin/systemctl', 'unmask', '--runtime', @mask_units);
 if($status != 0) {
-    $tracker->set_task_done($tasks{'post'}, "Event post-restore-config failed", 1);
+    $tracker->set_task_done($tasks{'post'}, "", 1);
     error("Event post-restore-config: FAIL");
 }
 $tracker->set_task_done($tasks{'post'}, '', 0);
