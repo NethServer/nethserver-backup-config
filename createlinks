@@ -45,6 +45,15 @@ event_actions('pre-restore-config', qw(
 ));
 
 #--------------------------------------------------
+# actions for pre-restore-config event
+#--------------------------------------------------
+
+event_actions('pre-restore-config', qw(
+    restore-config-download 25
+    restore-config-nsdc 30
+));
+
+#--------------------------------------------------
 # actions for post-restore-config event
 #--------------------------------------------------
 
