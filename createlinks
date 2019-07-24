@@ -36,6 +36,13 @@ event_actions($event, 'initialize-default-databases' => '00');
 
 $event = "nethserver-backup-config-save";
 
+#--------------------------------------------------
+# actions for pre-restore-config event
+#--------------------------------------------------
+
+event_actions('pre-restore-config', qw(
+    restore-config-checkupdate 80
+));
 
 #--------------------------------------------------
 # actions for post-restore-config event
