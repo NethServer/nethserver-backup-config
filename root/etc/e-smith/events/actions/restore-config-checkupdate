@@ -22,8 +22,11 @@
 
 # Check yum manpage for exit codes meaning
 
-yum -y check-update nethserver-\* &>/dev/null
-if [[ $? == 100 ]]; then
+yum -y --setopt=exit_on_lock=1 check-update nethserver-\* >/dev/null </dev/null
+exit_code=$?
+if [[ ${exit_code} == 100 ]]; then
     echo "[ERROR] the system is not up-to-date. Install all updates before running restore-config!"
     exit 100
 fi
+
+exit ${exit_code}
