@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 2.3.1
+Version: 2.4.0
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -49,6 +49,9 @@ mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 %config %attr(440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_backup_config
 
 %changelog
+* Tue Jul 30 2019 Davide Principi <davide.principi@nethesis.it> - 2.4.0-1
+- RPMs cache for config restore procedure - NethServer/dev#5794
+
 * Mon Apr 29 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.3.1-1
 - Backup-config history not available after rsync upgrade from 6 to 7 - Bug NethServer/dev#5747
 
