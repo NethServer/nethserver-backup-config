@@ -3,4 +3,5 @@
 #
 %adm ALL=NOPASSWD: /sbin/e-smith/backup-config, \
     /sbin/e-smith/restore-config, \
-    /usr/libexec/nethserver/backup-config-history
+    /usr/libexec/nethserver/backup-config-history, \
+    /usr/libexec/nethserver/restore-config-check-registration

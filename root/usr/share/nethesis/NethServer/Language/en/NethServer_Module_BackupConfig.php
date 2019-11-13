@@ -35,6 +35,9 @@ $L['valid_platform,config-backup-upload,valid-nsconfbackup,4'] = 'The uploaded f
 $L['valid_platform,config-backup-upload,valid-nsconfbackup,3'] = 'The uploaded file does not seem a valid backup file';
 $L['valid_platform,config-backup-upload,valid-nsconfbackup,1'] = 'No file was uploaded';
 
+$L['subscription_backup_label'] = 'You are trying to restore a backup with a subscription';
+$L['register_before_restore'] = 'Please register the machine before restoring this backup.';
+
 $L['original_ts_label'] = 'Backup date';
 $L['push_ts_label'] = 'Push date';
 $L['disk_ts_label'] = 'File date';

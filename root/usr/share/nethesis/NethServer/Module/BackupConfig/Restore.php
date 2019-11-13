@@ -82,6 +82,21 @@ class Restore extends \Nethgui\Controller\Table\RowAbstractAction
         }
     }
 
+    public function validate(\Nethgui\Controller\ValidationReportInterface $report)
+    {
+        parent::validate($report);
+        if ($this->getRequest()->isMutation()) {
+            # Pull the backup from history to a temporary file
+            $tmp = tempnam(sys_get_temp_dir(), 'restore-config-check-registration');
+            $this->getPlatform()->exec("/usr/bin/sudo /usr/libexec/nethserver/backup-config-history pull -f $tmp -i \${1}", array($this->parameters['id']));
+            $process = $this->getPlatform()->exec("/usr/bin/sudo /usr/libexec/nethserver/restore-config-check-registration $tmp");
+            if($process->getExitCode() !== 0) {
+                $report->addValidationErrorMessage($this, 'subscription_backup', 'register_before_restore');
+            }
+            unlink($tmp);
+        }
+    }
+
     public function process()
     {
         if ($this->getRequest()->isMutation()) {
