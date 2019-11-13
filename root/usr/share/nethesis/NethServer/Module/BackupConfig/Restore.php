@@ -85,7 +85,7 @@ class Restore extends \Nethgui\Controller\Table\RowAbstractAction
     public function process()
     {
         if ($this->getRequest()->isMutation()) {
-            $process = $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history pull -i ${1}', array($this->parameters['id']));
+             $process = $this->getPlatform()->exec('/usr/bin/sudo /usr/libexec/nethserver/backup-config-history pull -i ${1}', array($this->parameters['id']));
             if($process->getExitCode() === 0) {
                 $args = array('--mask-unit', 'httpd-admin');
                 if($this->parameters['InstallPackages'] === 'no') {
