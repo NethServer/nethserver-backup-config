@@ -95,9 +95,13 @@ if ($reinstall) {
 
 $ENV{'PTRACK_TASKID'} = $tasks{'post'};
 $tracker->set_task_progress($tasks{'post'}, 0.1, 'Post-restore');
-system('/usr/bin/systemctl', 'mask', '--runtime', @mask_units);
+if (scalar(@mask_units)) {
+    system('/usr/bin/systemctl', 'mask', '--runtime', @mask_units);
+}
 $status = system("/sbin/e-smith/signal-event", "post-restore-config", $skip_network ? '--skip-network' : @remap_interfaces);
-system('/usr/bin/systemctl', 'unmask', '--runtime', @mask_units);
+if (scalar(@mask_units)) {
+    system('/usr/bin/systemctl', 'unmask', '--runtime', @mask_units);
+}
 if($status != 0) {
     $tracker->set_task_done($tasks{'post'}, "", 1);
     error("Event post-restore-config: FAIL");
