@@ -26,23 +26,36 @@ use esmith::NetworksDB;
 use esmith::ConfigDB;
 
 my $ndb = esmith::NetworksDB->open();
-my $cdb = esmith::ConfigDB->open();
+
+my $net_backup = "/var/lib/nethserver/db/networks.preserve";
 
 if (grep(/^--skip-network$/, @ARGV)) {
 
-    # Delete all network interfaces
-    foreach my $item ($ndb->get_all()) {
-        if ($item->prop('type') =~ m/^(ethernet|bridge|bond|slave|vlan|alias)$/) {
-            $item->delete();
-        }
-        if ($item->key eq 'ppp0') {
-            $item->set_prop('type', 'xdsl-disabled');
-        }
-    }
+    if ( -f $net_backup ) {
+        # This is the database to preserve
+        my $old_ndb = esmith::NetworksDB->open($net_backup);
 
-    # Preserve upstream DNS, which will be overridden by the below action
-    my $dns = $cdb->get_prop('dns', 'NameServers');
-    system("/etc/e-smith/events/actions/nethserver-base-initialize-db");
-    # Restore previously saved DNS
-    $cdb->set_prop('dns', 'NameServers', $dns);
+        # Migrate restored records to the backup copy
+        foreach my $item ($ndb->get_all()) {
+            my $key = $item->key;
+            my $type = $item->prop('type');
+
+            # Skip all network interfaces
+            next if ($type =~ m/^(ethernet|bridge|bond|slave|vlan|alias|xdsl|xdsl-disabled)$/);
+
+            # Create the item if not exists, otherwise just merge the props
+            my $new_item = $old_ndb->get($key) || $old_ndb->new_record($key, { type => $type});
+            $new_item->merge_props($item->props);
+        }
+
+        # Flush changes to disk
+        $old_ndb->reload();
+
+        # Remove network db from backup and restore the previous one
+        unlink("/var/lib/nethserver/db/networks");
+        rename($net_backup, "/var/lib/nethserver/db/networks");
+
+    } else {
+        print "[WARNING] Network could not be preserved: '$net_backup' not found\n";
+    }
 }
