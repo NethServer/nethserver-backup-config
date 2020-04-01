@@ -73,6 +73,7 @@ The ``restore-config`` options:
 
 * ``--no-reinstall`` : disable package reinstall during restore
 * ``--mask-unit=<name>`` : use systemd to mask the specified unit (example: disable httpd-admin restart during restore)
+* ``--skip-network``: do not restore the network configuration
 
 Customization
 -------------
