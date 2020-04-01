@@ -51,8 +51,7 @@ if (grep(/^--skip-network$/, @ARGV)) {
         # Flush changes to disk
         $old_ndb->reload();
 
-        # Remove network db from backup and restore the previous one
-        unlink("/var/lib/nethserver/db/networks");
+        # Restore the previous networks db
         rename($net_backup, "/var/lib/nethserver/db/networks");
 
     } else {
