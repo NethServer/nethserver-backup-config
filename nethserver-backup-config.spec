@@ -38,6 +38,14 @@ rm -rf %{buildroot}
 %{genfilelist} %{buildroot} > %{name}-%{version}-%{release}-filelist
 mkdir -p %{buildroot}/%{_nsstatedir}/backup/history
 
+%pre
+# ensure srvmgr user exists:
+# configuration backups must be owned by srvmgr user otherwise
+# httpd-admin will not be able to deleted them
+if ! id srvmgr >/dev/null 2>&1 ; then
+   useradd -r -U -G adm srvmgr
+fi
+
 %files -f %{name}-%{version}-%{release}-filelist 
 %defattr(-,root,root)
 %config /etc/backup-config.d/custom.include
