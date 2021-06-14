@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 2.5.1
+Version: 2.5.2
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -57,6 +57,9 @@ fi
 %config %attr(440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_backup_config
 
 %changelog
+* Mon Jun 14 2021 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.5.2-1
+- Selective file restore not available after rsync-upgrade - Bug NethServer/dev#6522
+
 * Wed Dec 23 2020 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.5.1-1
 - Missing srvmgr user prevents OpenVPN file upload and cause wrong backup config history file owner - Bug NethServer/dev#6375
 
