@@ -25,24 +25,28 @@
 # "nethserver-dc-install"!
 
 nsroot=/var/lib/machines/nsdc
-tmprpm=$(mktemp --tmpdir -t ns-samba-XXXXXXXXX.x86_64.rpm)
+tmpdir=$(mktemp -d /tmp/ns-samba-XXXXXXXXX)
 
-trap "rm -rf ${tmprpm}" EXIT
+trap 'rm -rf ${tmpdir}' EXIT
 
 if [[ -d ${nsroot}/etc/yum/var ]]; then
     echo "[WARNING] the nethserver-dc package seems to be already installed" 1>&2
     exit 0
 fi
 
-nsdc_package=$(find /var/cache/yum -name nethserver-dc*.rpm)
-if [[ -f ${nsdc_package} ]]; then
-    rpm2cpio ${nsdc_package} | cpio -i --to-stdout './usr/lib/nethserver-dc/ns-samba-*.x86_64.rpm' > ${tmprpm}
+nsdc_package=$(find /var/cache/yum -name nethserver-dc\*.rpm)
+if [[ -f "${nsdc_package}" ]]; then
+    rpm2cpio "${nsdc_package}" | (
+        cd "${tmpdir}" || exit 1
+        cpio -i './usr/lib/nethserver-dc/*.rpm'
+    )
     mkdir -p ${nsroot}/etc/yum/vars
     mkdir -p ${nsroot}/var/log/journal
     mkdir -p ${nsroot}/etc/systemd/network
     cp -f /etc/yum/vars/* ${nsroot}/etc/yum/vars
     rpm --root=${nsroot} --import /etc/pki/rpm-gpg/*
-    yum -y --releasever=/ --installroot=${nsroot} --downloadonly install ${tmprpm} centos-release systemd-networkd bind-utils ntp
+    yum -y --releasever=/ --installroot=${nsroot} --downloadonly install perl "${tmpdir}"/*.rpm centos-release systemd-networkd bind-utils ntp
+    # shellcheck disable=SC2181
     if [[ $? != 0 ]]; then
         echo "[ERROR] failed to download nsdc packages" 1>&2
         rm -rf ${nsroot}
