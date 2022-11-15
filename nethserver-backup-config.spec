@@ -1,6 +1,6 @@
 Summary: NethServer backup config files only
 Name: nethserver-backup-config
-Version: 2.5.2
+Version: 2.5.3
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -57,6 +57,9 @@ fi
 %config %attr(440,root,root) %{_sysconfdir}/sudoers.d/20_nethserver_backup_config
 
 %changelog
+* Tue Nov 15 2022 Davide Principi <davide.principi@nethesis.it> - 2.5.3-1
+- Cannot login/join AD domain after Windows 11 22H2 update - Bug NethServer/dev#6702
+
 * Mon Jun 14 2021 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 2.5.2-1
 - Selective file restore not available after rsync-upgrade - Bug NethServer/dev#6522
 
